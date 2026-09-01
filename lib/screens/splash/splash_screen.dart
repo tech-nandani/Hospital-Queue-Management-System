@@ -1,6 +1,7 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
-import '../login/login_screen.dart';
+import '../role/role_selection_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -20,7 +21,7 @@ class _SplashScreenState extends State<SplashScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => const LoginScreen(),
+          builder: (_) => const RoleSelectionScreen(),
         ),
       );
     });
@@ -30,19 +31,17 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F8FD),
-
       body: SafeArea(
         child: Column(
           children: [
-
             // =========================
-            // TOP DECORATION
+            // TOP SECTION + LOGO
             // =========================
             Expanded(
               flex: 5,
               child: Stack(
                 children: [
-
+                  // Top right decoration
                   Positioned(
                     top: -80,
                     right: -70,
@@ -56,6 +55,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
                   ),
 
+                  // Left decoration
                   Positioned(
                     top: 70,
                     left: -100,
@@ -69,37 +69,37 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
                   ),
 
-                  Center(
+                  // =========================
+                  // LOGO
+                  // =========================
+
+                  // Pehle Center tha,
+                  // ab thoda neeche kiya hai
+                  Align(
+                    alignment: const Alignment(0, 0.75),
                     child: Container(
                       height: 190,
                       width: 190,
-
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(45),
-
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF1976D2)
-                                .withOpacity(0.12),
+                            color: const Color(0xFF1976D2).withOpacity(0.12),
                             blurRadius: 30,
                             offset: const Offset(0, 12),
                           ),
                         ],
                       ),
-
                       child: Stack(
                         alignment: Alignment.center,
                         children: [
-
                           Container(
                             height: 125,
                             width: 125,
-
                             decoration: BoxDecoration(
                               color: const Color(0xFFE8F2FF),
-                              borderRadius:
-                              BorderRadius.circular(35),
+                              borderRadius: BorderRadius.circular(35),
                             ),
                           ),
 
@@ -115,17 +115,14 @@ class _SplashScreenState extends State<SplashScreen> {
                             child: Container(
                               height: 34,
                               width: 34,
-
                               decoration: BoxDecoration(
                                 color: const Color(0xFF1976D2),
-                                borderRadius:
-                                BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
                                   color: Colors.white,
                                   width: 3,
                                 ),
                               ),
-
                               child: const Icon(
                                 Icons.favorite_rounded,
                                 color: Colors.white,
@@ -148,11 +145,9 @@ class _SplashScreenState extends State<SplashScreen> {
               flex: 3,
               child: Column(
                 children: [
-
                   const Text(
-                    "Hospital Queue",
+                    'Hospital Queue',
                     textAlign: TextAlign.center,
-
                     style: TextStyle(
                       color: Color(0xFF16324F),
                       fontSize: 30,
@@ -164,9 +159,8 @@ class _SplashScreenState extends State<SplashScreen> {
                   const SizedBox(height: 6),
 
                   const Text(
-                    "Management System",
+                    'Management System',
                     textAlign: TextAlign.center,
-
                     style: TextStyle(
                       color: Color(0xFF1976D2),
                       fontSize: 17,
@@ -180,12 +174,10 @@ class _SplashScreenState extends State<SplashScreen> {
                     padding: EdgeInsets.symmetric(
                       horizontal: 45,
                     ),
-
                     child: Text(
-                      "Simplifying hospital visits with\n"
-                          "smart and organized queue management.",
+                      'Simplifying hospital visits with\n'
+                          'smart and organized queue management.',
                       textAlign: TextAlign.center,
-
                       style: TextStyle(
                         color: Colors.black54,
                         fontSize: 13,
@@ -196,15 +188,12 @@ class _SplashScreenState extends State<SplashScreen> {
 
                   const SizedBox(height: 30),
 
-                  // Loading indicator
                   SizedBox(
                     height: 28,
                     width: 28,
-
                     child: CircularProgressIndicator(
                       strokeWidth: 2.5,
-                      valueColor:
-                      const AlwaysStoppedAnimation<Color>(
+                      valueColor: const AlwaysStoppedAnimation<Color>(
                         Color(0xFF1976D2),
                       ),
                     ),
@@ -214,13 +203,12 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
 
             // =========================
-            // BOTTOM
+            // BOTTOM TEXT
             // =========================
             const Padding(
               padding: EdgeInsets.only(bottom: 25),
-
               child: Text(
-                "YOUR HEALTH • OUR PRIORITY",
+                'YOUR HEALTH • OUR PRIORITY',
                 style: TextStyle(
                   color: Colors.black38,
                   fontSize: 10,
