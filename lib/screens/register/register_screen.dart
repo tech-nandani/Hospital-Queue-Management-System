@@ -508,20 +508,36 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
 class FieldLabel extends StatelessWidget {
   final String text;
+  final bool isRequired;
 
   const FieldLabel({
     super.key,
     required this.text,
+    this.isRequired = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: const TextStyle(
-        color: Color(0xFF334155),
-        fontSize: 13,
-        fontWeight: FontWeight.w600,
+    return Text.rich(
+      TextSpan(
+        text: text,
+        style: const TextStyle(
+          color: Color(0xFF334155),
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+        ),
+        children: isRequired
+            ? const [
+                TextSpan(
+                  text: ' *',
+                  style: TextStyle(
+                    color: Color(0xFFE53E3E),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ]
+            : null,
       ),
     );
   }

@@ -5,6 +5,7 @@ import '../../models/queue_patient.dart';
 import '../../services/queue_service.dart';
 import '../../widgets/hospital_sidebar.dart';
 import '../doctor/doctor_dashboard_screen.dart';
+import '../queue/add_patient_screen.dart';
 
 const Color pink = Color(0xFFE76A91);
 const Color orange = Color(0xFFFF9F43);
@@ -14,9 +15,14 @@ const Color blue = Color(0xFF1976D2);
 const Color lavender = Color(0xFF6C63B5);
 const Color green = Color(0xFF3A8D68);
 
-
 class TodayQueueScreen extends StatelessWidget {
   const TodayQueueScreen({super.key});
+
+  void _openAddPatient(BuildContext context) {
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const AddPatientScreen()));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,12 +39,19 @@ class TodayQueueScreen extends StatelessWidget {
         child: SafeArea(
           child: HospitalSidebar(
             selectedPage: HospitalSidebarPage.todayQueue,
+
             onDashboardTap: () {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                    builder: (_) => const DoctorDashboardScreen(),
-                  ),
-                );
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (_) => const DoctorDashboardScreen(),
+                ),
+              );
+            },
+
+            onAddPatientTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const AddPatientScreen()),
+              );
             },
           ),
         ),
@@ -53,7 +66,7 @@ class TodayQueueScreen extends StatelessWidget {
           builder: (context, _) {
             return LayoutBuilder(
               builder: (context, constraints) {
-                final bool desktop = constraints.maxWidth >= 1000;
+                final bool desktop = constraints.maxWidth >= 900;
 
                 return Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,10 +74,21 @@ class TodayQueueScreen extends StatelessWidget {
                     if (desktop)
                       HospitalSidebar(
                         selectedPage: HospitalSidebarPage.todayQueue,
+
                         onDashboardTap: () {
                           Navigator.of(context).pushReplacement(
                             MaterialPageRoute(
                               builder: (_) => const DoctorDashboardScreen(),
+                            ),
+                          );
+                        },
+
+                        onAddPatientTap: () {
+                          Navigator.of(context).pop();
+
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const AddPatientScreen(),
                             ),
                           );
                         },
@@ -100,19 +124,15 @@ class TodayQueueScreen extends StatelessWidget {
                                 if (box.maxWidth >= 1050) {
                                   return Row(
                                     crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Expanded(
                                         flex: 2,
-                                        child: _CurrentQueue(
-                                          service: service,
-                                        ),
+                                        child: _CurrentQueue(service: service),
                                       ),
                                       const SizedBox(width: 18),
                                       Expanded(
-                                        child: _QueueSummary(
-                                          service: service,
-                                        ),
+                                        child: _QueueSummary(service: service),
                                       ),
                                     ],
                                   );
@@ -120,13 +140,9 @@ class TodayQueueScreen extends StatelessWidget {
 
                                 return Column(
                                   children: [
-                                    _CurrentQueue(
-                                      service: service,
-                                    ),
+                                    _CurrentQueue(service: service),
                                     const SizedBox(height: 18),
-                                    _QueueSummary(
-                                      service: service,
-                                    ),
+                                    _QueueSummary(service: service),
                                   ],
                                 );
                               },
@@ -142,7 +158,7 @@ class TodayQueueScreen extends StatelessWidget {
                                 if (box.maxWidth >= 850) {
                                   return Row(
                                     crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Expanded(
                                         child: _PriorityPatients(
@@ -161,13 +177,9 @@ class TodayQueueScreen extends StatelessWidget {
 
                                 return Column(
                                   children: [
-                                    _PriorityPatients(
-                                      service: service,
-                                    ),
+                                    _PriorityPatients(service: service),
                                     const SizedBox(height: 18),
-                                    _QuickAnalytics(
-                                      service: service,
-                                    ),
+                                    _QuickAnalytics(service: service),
                                   ],
                                 );
                               },
@@ -238,9 +250,7 @@ class TodayQueueScreen extends StatelessWidget {
 class _TopBar extends StatelessWidget {
   final bool desktop;
 
-  const _TopBar({
-    required this.desktop,
-  });
+  const _TopBar({required this.desktop});
 
   @override
   Widget build(BuildContext context) {
@@ -260,14 +270,9 @@ class _TopBar extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: const Color(0xFFDCE6F2),
-                    ),
+                    border: Border.all(color: const Color(0xFFDCE6F2)),
                   ),
-                  child: const Icon(
-                    Icons.menu_rounded,
-                    color: navy,
-                  ),
+                  child: const Icon(Icons.menu_rounded, color: navy),
                 ),
               );
             },
@@ -275,12 +280,7 @@ class _TopBar extends StatelessWidget {
 
         if (!desktop) const SizedBox(width: 12),
 
-        if (desktop)
-          const Icon(
-            Icons.menu_rounded,
-            size: 28,
-            color: navy,
-          ),
+        if (desktop) const Icon(Icons.menu_rounded, size: 28, color: navy),
 
         if (desktop) const SizedBox(width: 16),
 
@@ -288,35 +288,23 @@ class _TopBar extends StatelessWidget {
           Expanded(
             child: Container(
               height: 48,
-              constraints: const BoxConstraints(
-                maxWidth: 500,
-              ),
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-              ),
+              constraints: const BoxConstraints(maxWidth: 500),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(25),
-                border: Border.all(
-                  color: const Color(0xFFDCE6F2),
-                ),
+                border: Border.all(color: const Color(0xFFDCE6F2)),
               ),
               child: const Row(
                 children: [
-                  Icon(
-                    Icons.search_rounded,
-                    color: Color(0xFF6E8199),
-                  ),
+                  Icon(Icons.search_rounded, color: Color(0xFF6E8199)),
                   SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       'Search patients, token, or anything...',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF7A8CA3),
-                      ),
+                      style: TextStyle(fontSize: 13, color: Color(0xFF7A8CA3)),
                     ),
                   ),
                 ],
@@ -367,9 +355,7 @@ class _TopIcon extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: const Color(0xFFDCE6F2),
-        ),
+        border: Border.all(color: const Color(0xFFDCE6F2)),
       ),
       child: const Icon(
         Icons.notifications_none_rounded,
@@ -392,24 +378,15 @@ class _TopDate extends StatelessWidget {
     final now = DateTime.now();
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 13,
-        vertical: 9,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: const Color(0xFFDCE6F2),
-        ),
+        border: Border.all(color: const Color(0xFFDCE6F2)),
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.calendar_month_rounded,
-            color: blue,
-            size: 20,
-          ),
+          const Icon(Icons.calendar_month_rounded, color: blue, size: 20),
           const SizedBox(width: 8),
           Text(
             '${now.day} ${_month(now.month)} ${now.year}',
@@ -455,16 +432,11 @@ class _DoctorProfile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 11,
-        vertical: 7,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: const Color(0xFFDCE6F2),
-        ),
+        border: Border.all(color: const Color(0xFFDCE6F2)),
       ),
       child: const Row(
         mainAxisSize: MainAxisSize.min,
@@ -472,10 +444,7 @@ class _DoctorProfile extends StatelessWidget {
           CircleAvatar(
             radius: 20,
             backgroundColor: Color(0xFFEAF3FF),
-            child: Icon(
-              Icons.person_rounded,
-              color: blue,
-            ),
+            child: Icon(Icons.person_rounded, color: blue),
           ),
           SizedBox(width: 9),
           Column(
@@ -491,10 +460,7 @@ class _DoctorProfile extends StatelessWidget {
               ),
               Text(
                 'General Department',
-                style: TextStyle(
-                  fontSize: 9,
-                  color: Color(0xFF748196),
-                ),
+                style: TextStyle(fontSize: 9, color: Color(0xFF748196)),
               ),
             ],
           ),
@@ -517,9 +483,7 @@ class _DoctorProfile extends StatelessWidget {
 class _PageHeader extends StatelessWidget {
   final bool desktop;
 
-  const _PageHeader({
-    required this.desktop,
-  });
+  const _PageHeader({required this.desktop});
 
   @override
   Widget build(BuildContext context) {
@@ -538,10 +502,7 @@ class _PageHeader extends StatelessWidget {
           SizedBox(height: 5),
           Text(
             'Manage and monitor today’s patient queue in real-time.',
-            style: TextStyle(
-              fontSize: 12,
-              color: Color(0xFF748196),
-            ),
+            style: TextStyle(fontSize: 12, color: Color(0xFF748196)),
           ),
         ],
       );
@@ -565,10 +526,7 @@ class _PageHeader extends StatelessWidget {
               SizedBox(height: 5),
               Text(
                 'Manage and monitor today’s patient queue in real-time.',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Color(0xFF748196),
-                ),
+                style: TextStyle(fontSize: 13, color: Color(0xFF748196)),
               ),
             ],
           ),
@@ -577,35 +535,23 @@ class _PageHeader extends StatelessWidget {
         const SizedBox(width: 18),
 
         Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 14,
-            vertical: 10,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(15),
-            border: Border.all(
-              color: const Color(0xFFDCE6F2),
-            ),
+            border: Border.all(color: const Color(0xFFDCE6F2)),
           ),
           child: const Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                Icons.local_hospital_outlined,
-                color: blue,
-                size: 21,
-              ),
+              Icon(Icons.local_hospital_outlined, color: blue, size: 21),
               SizedBox(width: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     'Department',
-                    style: TextStyle(
-                      fontSize: 9,
-                      color: Color(0xFF748196),
-                    ),
+                    style: TextStyle(fontSize: 9, color: Color(0xFF748196)),
                   ),
                   SizedBox(height: 2),
                   Text(
@@ -639,9 +585,7 @@ class _PageHeader extends StatelessWidget {
 class _Statistics extends StatelessWidget {
   final QueueService service;
 
-  const _Statistics({
-    required this.service,
-  });
+  const _Statistics({required this.service});
 
   @override
   Widget build(BuildContext context) {
@@ -710,8 +654,7 @@ class _Statistics extends StatelessWidget {
           columns = 1;
         }
 
-        final width =
-            (constraints.maxWidth - ((columns - 1) * 14)) / columns;
+        final width = (constraints.maxWidth - ((columns - 1) * 14)) / columns;
 
         return Wrap(
           spacing: 14,
@@ -773,18 +716,10 @@ class _Statistics extends StatelessWidget {
 
     final now = DateTime.now();
 
-    var created = DateTime(
-      now.year,
-      now.month,
-      now.day,
-      hour,
-      minute,
-    );
+    var created = DateTime(now.year, now.month, now.day, hour, minute);
 
     if (created.isAfter(now)) {
-      created = created.subtract(
-        const Duration(days: 1),
-      );
+      created = created.subtract(const Duration(days: 1));
     }
 
     return now.difference(created).inMinutes;
@@ -820,26 +755,20 @@ class _StatData {
 class _StatCard extends StatelessWidget {
   final _StatData data;
 
-  const _StatCard({
-    required this.data,
-  });
+  const _StatCard({required this.data});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(
-        minHeight: 125,
-      ),
+      constraints: const BoxConstraints(minHeight: 125),
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(19),
-        border: Border.all(
-          color: const Color(0xFFDCE6F2),
-        ),
+        border: Border.all(color: const Color(0xFFDCE6F2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.025),
+            color: Colors.black.withValues(alpha: 0.025),
             blurRadius: 12,
             offset: const Offset(0, 3),
           ),
@@ -895,11 +824,7 @@ class _StatCard extends StatelessWidget {
               color: data.background,
               borderRadius: BorderRadius.circular(15),
             ),
-            child: Icon(
-              data.icon,
-              color: data.color,
-              size: 25,
-            ),
+            child: Icon(data.icon, color: data.color, size: 25),
           ),
         ],
       ),
@@ -914,18 +839,12 @@ class _StatCard extends StatelessWidget {
 class _CurrentQueue extends StatelessWidget {
   final QueueService service;
 
-  const _CurrentQueue({
-    required this.service,
-  });
+  const _CurrentQueue({required this.service});
 
   @override
   Widget build(BuildContext context) {
     final patients = service.patients
-        .where(
-          (p) =>
-      p.status == 'Waiting' ||
-          p.status == 'In Consultation',
-    )
+        .where((p) => p.status == 'Waiting' || p.status == 'In Consultation')
         .toList();
 
     return _Card(
@@ -936,10 +855,7 @@ class _CurrentQueue extends StatelessWidget {
         alignment: WrapAlignment.end,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 9,
-              vertical: 5,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
             decoration: BoxDecoration(
               color: const Color(0xFFEAF8F2),
               borderRadius: BorderRadius.circular(20),
@@ -972,22 +888,13 @@ class _CurrentQueue extends StatelessWidget {
                   ),
                 );
             },
-            icon: const Icon(
-              Icons.campaign_rounded,
-              size: 15,
-            ),
-            label: const Text(
-              'Call Next Patient',
-              maxLines: 1,
-            ),
+            icon: const Icon(Icons.campaign_rounded, size: 15),
+            label: const Text('Call Next Patient', maxLines: 1),
             style: ElevatedButton.styleFrom(
               backgroundColor: blue,
               foregroundColor: Colors.white,
               elevation: 0,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 9,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               shape: RoundedRectangleBorder(
@@ -1004,32 +911,24 @@ class _CurrentQueue extends StatelessWidget {
       child: patients.isEmpty
           ? const _EmptyQueue()
           : LayoutBuilder(
-        builder: (context, constraints) {
-          if (constraints.maxWidth < 650) {
-            return Column(
-              children: patients
-                  .map(
-                    (patient) => _MobileQueueRow(
-                  patient: patient,
-                ),
-              )
-                  .toList(),
-            );
-          }
+              builder: (context, constraints) {
+                if (constraints.maxWidth < 650) {
+                  return Column(
+                    children: patients
+                        .map((patient) => _MobileQueueRow(patient: patient))
+                        .toList(),
+                  );
+                }
 
-          return Column(
-            children: [
-              const _QueueHeader(),
-              const SizedBox(height: 7),
-              ...patients.map(
-                    (patient) => _QueueRow(
-                  patient: patient,
-                ),
-              ),
-            ],
-          );
-        },
-      ),
+                return Column(
+                  children: [
+                    const _QueueHeader(),
+                    const SizedBox(height: 7),
+                    ...patients.map((patient) => _QueueRow(patient: patient)),
+                  ],
+                );
+              },
+            ),
     );
   }
 }
@@ -1044,56 +943,16 @@ class _QueueHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 5,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       child: Row(
         children: [
-          SizedBox(
-            width: 65,
-            child: Text(
-              'Token No.',
-              style: _headerStyle,
-            ),
-          ),
-          Expanded(
-            flex: 3,
-            child: Text(
-              'Patient Name',
-              style: _headerStyle,
-            ),
-          ),
-          Expanded(
-            child: Text(
-              'Age',
-              style: _headerStyle,
-            ),
-          ),
-          Expanded(
-            child: Text(
-              'Time',
-              style: _headerStyle,
-            ),
-          ),
-          Expanded(
-            child: Text(
-              'Wait Time',
-              style: _headerStyle,
-            ),
-          ),
-          Expanded(
-            child: Text(
-              'Priority',
-              style: _headerStyle,
-            ),
-          ),
-          Expanded(
-            child: Text(
-              'Status',
-              style: _headerStyle,
-            ),
-          ),
+          SizedBox(width: 65, child: Text('Token No.', style: _headerStyle)),
+          Expanded(flex: 3, child: Text('Patient Name', style: _headerStyle)),
+          Expanded(child: Text('Age', style: _headerStyle)),
+          Expanded(child: Text('Time', style: _headerStyle)),
+          Expanded(child: Text('Wait Time', style: _headerStyle)),
+          Expanded(child: Text('Priority', style: _headerStyle)),
+          Expanded(child: Text('Status', style: _headerStyle)),
         ],
       ),
     );
@@ -1113,9 +972,7 @@ const TextStyle _headerStyle = TextStyle(
 class _QueueRow extends StatelessWidget {
   final QueuePatient patient;
 
-  const _QueueRow({
-    required this.patient,
-  });
+  const _QueueRow({required this.patient});
 
   @override
   Widget build(BuildContext context) {
@@ -1123,18 +980,11 @@ class _QueueRow extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 6),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 10,
-        vertical: 10,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       decoration: BoxDecoration(
-        color: high
-            ? const Color(0xFFFFFAF1)
-            : Colors.white,
+        color: high ? const Color(0xFFFFFAF1) : Colors.white,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: const Color(0xFFE8EEF5),
-        ),
+        border: Border.all(color: const Color(0xFFE8EEF5)),
       ),
       child: Row(
         children: [
@@ -1169,10 +1019,7 @@ class _QueueRow extends StatelessWidget {
               '${patient.age}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 9,
-                color: Color(0xFF536B89),
-              ),
+              style: const TextStyle(fontSize: 9, color: Color(0xFF536B89)),
             ),
           ),
 
@@ -1181,10 +1028,7 @@ class _QueueRow extends StatelessWidget {
               patient.time,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 9,
-                color: Color(0xFF536B89),
-              ),
+              style: const TextStyle(fontSize: 9, color: Color(0xFF536B89)),
             ),
           ),
 
@@ -1202,17 +1046,11 @@ class _QueueRow extends StatelessWidget {
           ),
 
           Expanded(
-            child: _StatusBadge(
-              text: patient.priority,
-              type: patient.priority,
-            ),
+            child: _StatusBadge(text: patient.priority, type: patient.priority),
           ),
 
           Expanded(
-            child: _StatusBadge(
-              text: patient.status,
-              type: patient.status,
-            ),
+            child: _StatusBadge(text: patient.status, type: patient.status),
           ),
         ],
       ),
@@ -1227,9 +1065,7 @@ class _QueueRow extends StatelessWidget {
 class _MobileQueueRow extends StatelessWidget {
   final QueuePatient patient;
 
-  const _MobileQueueRow({
-    required this.patient,
-  });
+  const _MobileQueueRow({required this.patient});
 
   @override
   Widget build(BuildContext context) {
@@ -1241,9 +1077,7 @@ class _MobileQueueRow extends StatelessWidget {
             ? const Color(0xFFFFFAF1)
             : Colors.white,
         borderRadius: BorderRadius.circular(13),
-        border: Border.all(
-          color: const Color(0xFFE5EBF2),
-        ),
+        border: Border.all(color: const Color(0xFFE5EBF2)),
       ),
       child: Row(
         children: [
@@ -1287,20 +1121,14 @@ class _MobileQueueRow extends StatelessWidget {
                   '${patient.age} years • ${patient.gender}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 9,
-                    color: Color(0xFF748196),
-                  ),
+                  style: const TextStyle(fontSize: 9, color: Color(0xFF748196)),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   '${patient.time} • ${_waitTime(patient.time)} wait',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 9,
-                    color: Color(0xFF748196),
-                  ),
+                  style: const TextStyle(fontSize: 9, color: Color(0xFF748196)),
                 ),
               ],
             ),
@@ -1309,10 +1137,7 @@ class _MobileQueueRow extends StatelessWidget {
           const SizedBox(width: 6),
 
           Flexible(
-            child: _StatusBadge(
-              text: patient.status,
-              type: patient.status,
-            ),
+            child: _StatusBadge(text: patient.status, type: patient.status),
           ),
         ],
       ),
@@ -1346,18 +1171,10 @@ String _waitTime(String time) {
 
   final now = DateTime.now();
 
-  var created = DateTime(
-    now.year,
-    now.month,
-    now.day,
-    hour,
-    minute,
-  );
+  var created = DateTime(now.year, now.month, now.day, hour, minute);
 
   if (created.isAfter(now)) {
-    created = created.subtract(
-      const Duration(days: 1),
-    );
+    created = created.subtract(const Duration(days: 1));
   }
 
   final minutes = now.difference(created).inMinutes;
@@ -1388,20 +1205,14 @@ class _EmptyQueue extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Padding(
-      padding: EdgeInsets.symmetric(
-        vertical: 45,
-      ),
+      padding: EdgeInsets.symmetric(vertical: 45),
       child: Center(
         child: Column(
           children: [
             CircleAvatar(
               radius: 30,
               backgroundColor: Color(0xFFEAF3FF),
-              child: Icon(
-                Icons.people_outline_rounded,
-                color: blue,
-                size: 30,
-              ),
+              child: Icon(Icons.people_outline_rounded, color: blue, size: 30),
             ),
             SizedBox(height: 14),
             Text(
@@ -1416,10 +1227,7 @@ class _EmptyQueue extends StatelessWidget {
             Text(
               'Patients added to the queue will appear here.',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 10,
-                color: Color(0xFF748196),
-              ),
+              style: TextStyle(fontSize: 10, color: Color(0xFF748196)),
             ),
           ],
         ),
@@ -1435,25 +1243,19 @@ class _EmptyQueue extends StatelessWidget {
 class _QueueSummary extends StatelessWidget {
   final QueueService service;
 
-  const _QueueSummary({
-    required this.service,
-  });
+  const _QueueSummary({required this.service});
 
   @override
   Widget build(BuildContext context) {
     final total =
         service.waitingCount +
-            service.consultationCount +
-            service.completedCount +
-            service.noShowCount;
+        service.consultationCount +
+        service.completedCount +
+        service.noShowCount;
 
     return _Card(
       title: 'Queue Summary',
-      trailing: const Icon(
-        Icons.insights_rounded,
-        size: 19,
-        color: blue,
-      ),
+      trailing: const Icon(Icons.insights_rounded, size: 19, color: blue),
       child: SizedBox(
         height: 245,
         child: LayoutBuilder(
@@ -1471,10 +1273,7 @@ class _QueueSummary extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Expanded(
-                    child: _LegendList(
-                      service: service,
-                      total: total,
-                    ),
+                    child: _LegendList(service: service, total: total),
                   ),
                 ],
               );
@@ -1492,10 +1291,7 @@ class _QueueSummary extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: _LegendList(
-                    service: service,
-                    total: total,
-                  ),
+                  child: _LegendList(service: service, total: total),
                 ),
               ],
             );
@@ -1525,11 +1321,7 @@ class _DonutChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final total =
-        waiting +
-            consultation +
-            completed +
-            noShow;
+    final total = waiting + consultation + completed + noShow;
 
     if (total == 0) {
       return Center(
@@ -1538,10 +1330,7 @@ class _DonutChart extends StatelessWidget {
           width: 145,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(
-              color: const Color(0xFFE5EAF2),
-              width: 22,
-            ),
+            border: Border.all(color: const Color(0xFFE5EAF2), width: 22),
           ),
           child: const Center(
             child: Text(
@@ -1590,9 +1379,7 @@ class _DonutChart extends StatelessWidget {
         ],
         centerSpaceColor: Colors.white,
       ),
-      swapAnimationDuration: const Duration(
-        milliseconds: 450,
-      ),
+      swapAnimationDuration: const Duration(milliseconds: 450),
     );
   }
 }
@@ -1605,10 +1392,7 @@ class _LegendList extends StatelessWidget {
   final QueueService service;
   final int total;
 
-  const _LegendList({
-    required this.service,
-    required this.total,
-  });
+  const _LegendList({required this.service, required this.total});
 
   @override
   Widget build(BuildContext context) {
@@ -1662,8 +1446,7 @@ class _LegendRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final percentage =
-    total == 0 ? 0 : ((value / total) * 100).round();
+    final percentage = total == 0 ? 0 : ((value / total) * 100).round();
 
     return Row(
       children: [
@@ -1709,19 +1492,17 @@ class _LegendRow extends StatelessWidget {
 class _PriorityPatients extends StatelessWidget {
   final QueueService service;
 
-  const _PriorityPatients({
-    required this.service,
-  });
+  const _PriorityPatients({required this.service});
 
   @override
   Widget build(BuildContext context) {
     final patients = service.patients
         .where(
           (p) =>
-      p.priority == 'High' &&
-          p.status != 'Completed' &&
-          p.status != 'No Show',
-    )
+              p.priority == 'High' &&
+              p.status != 'Completed' &&
+              p.status != 'No Show',
+        )
         .toList();
 
     return _Card(
@@ -1736,96 +1517,78 @@ class _PriorityPatients extends StatelessWidget {
       ),
       child: patients.isEmpty
           ? const Padding(
-        padding: EdgeInsets.symmetric(
-          vertical: 30,
-        ),
-        child: Center(
-          child: Text(
-            'No high-priority patients right now.',
-            style: TextStyle(
-              fontSize: 10,
-              color: Color(0xFF748196),
-            ),
-          ),
-        ),
-      )
-          : Column(
-        children: patients.map(
-              (patient) {
-            return Container(
-              margin: const EdgeInsets.only(
-                bottom: 8,
-              ),
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFF3F6),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFFFFDDE6),
+              padding: EdgeInsets.symmetric(vertical: 30),
+              child: Center(
+                child: Text(
+                  'No high-priority patients right now.',
+                  style: TextStyle(fontSize: 10, color: Color(0xFF748196)),
                 ),
               ),
-              child: Row(
-                children: [
-                  Container(
-                    height: 40,
-                    width: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius:
-                      BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.priority_high_rounded,
-                      color: pink,
-                      size: 20,
-                    ),
+            )
+          : Column(
+              children: patients.map((patient) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF3F6),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: const Color(0xFFFFDDE6)),
                   ),
-
-                  const SizedBox(width: 10),
-
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          patient.name,
-                          maxLines: 1,
-                          overflow:
-                          TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.bold,
-                            color: navy,
-                          ),
+                  child: Row(
+                    children: [
+                      Container(
+                        height: 40,
+                        width: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        const SizedBox(height: 3),
-                        Text(
-                          'Token A-${patient.token.toString().padLeft(2, '0')} • ${patient.reason}',
-                          maxLines: 1,
-                          overflow:
-                          TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontSize: 9,
-                            color: Color(0xFF748196),
-                          ),
+                        child: const Icon(
+                          Icons.priority_high_rounded,
+                          color: pink,
+                          size: 20,
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
 
-                  const SizedBox(width: 6),
+                      const SizedBox(width: 10),
 
-                  const _StatusBadge(
-                    text: 'High',
-                    type: 'High',
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              patient.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: navy,
+                              ),
+                            ),
+                            const SizedBox(height: 3),
+                            Text(
+                              'Token A-${patient.token.toString().padLeft(2, '0')} • ${patient.reason}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 9,
+                                color: Color(0xFF748196),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(width: 6),
+
+                      const _StatusBadge(text: 'High', type: 'High'),
+                    ],
                   ),
-                ],
-              ),
-            );
-          },
-        ).toList(),
-      ),
+                );
+              }).toList(),
+            ),
     );
   }
 }
@@ -1837,19 +1600,13 @@ class _PriorityPatients extends StatelessWidget {
 class _QuickAnalytics extends StatelessWidget {
   final QueueService service;
 
-  const _QuickAnalytics({
-    required this.service,
-  });
+  const _QuickAnalytics({required this.service});
 
   @override
   Widget build(BuildContext context) {
     return _Card(
       title: 'Quick Analytics',
-      trailing: const Icon(
-        Icons.analytics_outlined,
-        size: 19,
-        color: blue,
-      ),
+      trailing: const Icon(Icons.analytics_outlined, size: 19, color: blue),
       child: Row(
         children: [
           Expanded(
@@ -1909,9 +1666,7 @@ class _AnalyticsBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(
-        minHeight: 105,
-      ),
+      constraints: const BoxConstraints(minHeight: 105),
       padding: const EdgeInsets.all(11),
       decoration: BoxDecoration(
         color: background,
@@ -1920,11 +1675,7 @@ class _AnalyticsBox extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon,
-            size: 19,
-            color: color,
-          ),
+          Icon(icon, size: 19, color: color),
           const SizedBox(height: 8),
           Text(
             title,
@@ -1968,20 +1719,14 @@ class _AiTip extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFF4F1FF),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: const Color(0xFFE3DCFF),
-        ),
+        border: Border.all(color: const Color(0xFFE3DCFF)),
       ),
       child: const Row(
         children: [
           CircleAvatar(
             radius: 25,
             backgroundColor: Colors.white,
-            child: Icon(
-              Icons.smart_toy_rounded,
-              color: lavender,
-              size: 28,
-            ),
+            child: Icon(Icons.smart_toy_rounded, color: lavender, size: 28),
           ),
           SizedBox(width: 13),
           Expanded(
@@ -2001,10 +1746,7 @@ class _AiTip extends StatelessWidget {
                   'Your queue information will update automatically as patients are added and managed.',
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Color(0xFF748196),
-                  ),
+                  style: TextStyle(fontSize: 10, color: Color(0xFF748196)),
                 ),
               ],
             ),
@@ -2024,11 +1766,7 @@ class _Card extends StatelessWidget {
   final Widget? trailing;
   final Widget child;
 
-  const _Card({
-    required this.title,
-    required this.child,
-    this.trailing,
-  });
+  const _Card({required this.title, required this.child, this.trailing});
 
   @override
   Widget build(BuildContext context) {
@@ -2038,12 +1776,10 @@ class _Card extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: const Color(0xFFDCE6F2),
-        ),
+        border: Border.all(color: const Color(0xFFDCE6F2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 12,
             offset: const Offset(0, 3),
           ),
@@ -2069,9 +1805,7 @@ class _Card extends StatelessWidget {
               ),
               if (trailing != null) ...[
                 const SizedBox(width: 8),
-                Flexible(
-                  child: trailing!,
-                ),
+                Flexible(child: trailing!),
               ],
             ],
           ),
@@ -2091,10 +1825,7 @@ class _StatusBadge extends StatelessWidget {
   final String text;
   final String type;
 
-  const _StatusBadge({
-    required this.text,
-    required this.type,
-  });
+  const _StatusBadge({required this.text, required this.type});
 
   @override
   Widget build(BuildContext context) {
@@ -2133,10 +1864,7 @@ class _StatusBadge extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 7,
-        vertical: 4,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
       decoration: BoxDecoration(
         color: bg,
         borderRadius: BorderRadius.circular(7),
@@ -2146,15 +1874,8 @@ class _StatusBadge extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 8,
-          fontWeight: FontWeight.w600,
-          color: fg,
-        ),
+        style: TextStyle(fontSize: 8, fontWeight: FontWeight.w600, color: fg),
       ),
     );
   }
 }
-
-
-

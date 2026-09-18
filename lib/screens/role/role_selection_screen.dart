@@ -1,162 +1,240 @@
 import 'package:flutter/material.dart';
+import '../admin/admin_login_screen.dart';
 import '../login/patient_login_screen.dart';
 import '../login/login_screen.dart';
+import '../visual_preview/hospital_visual_preview_screen.dart';
+import '../../widgets/hospital_workflow_visual.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
   const RoleSelectionScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF4F8FD),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWideScreen = constraints.maxWidth >= 900;
 
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 24,
-            vertical: 20,
+        if (isWideScreen) {
+          return Scaffold(
+            backgroundColor: const Color(0xFFF6F9FC),
+            body: Row(
+              children: [
+                // ==========================================
+                // LEFT SIDE — HOSPITAL VISUAL / ANIMATION
+                // ==========================================
+                const Expanded(
+                  flex: 6,
+                  child: HospitalWorkflowVisual(
+                    showHeader: true,
+                    activeToken: 'A-104',
+                  ),
+                ),
+
+                // ==========================================
+                // RIGHT SIDE — ROLE SELECTION
+                // ==========================================
+                Expanded(
+                  flex: 5,
+                  child: Container(
+                    height: double.infinity,
+                    color: const Color(0xFFF6F9FC),
+                    child: Center(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 40,
+                          vertical: 32,
+                        ),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 480),
+                          child: _buildRoleContent(context),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return Scaffold(
+          backgroundColor: const Color(0xFFF6F9FC),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(22, 22, 22, 18),
+              child: _buildRoleContent(context),
+            ),
           ),
+        );
+      },
+    );
+  }
 
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-
-            children: [
-
-              // =========================
-              // TOP SPACE
-              // =========================
-
-              const SizedBox(height: 45),
-
-              // =========================
-              // TITLE
-              // =========================
-
+  Widget _buildRoleContent(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              height: 48,
+              width: 48,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE4F0FF),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: const Icon(
+                Icons.local_hospital_rounded,
+                color: Color(0xFF1976D2),
+                size: 27,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'CareFlow',
+                    style: TextStyle(
+                      color: Color(0xFF16324F),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              tooltip: 'Preview Hospital Visual',
+              icon: const Icon(Icons.animation_rounded, color: Color(0xFF1976D2)),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const HospitalVisualPreviewScreen(),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 38),
               const Text(
-                'Welcome to',
+                'Good to see you.',
                 style: TextStyle(
-                  fontSize: 18,
                   color: Color(0xFF1976D2),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-
-              const SizedBox(height: 8),
-
-              const Text(
-                'Hospital Queue',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF16324F),
-                ),
-              ),
-
-              const Text(
-                'Management System',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF6B7A90),
-                ),
-              ),
-
-              const SizedBox(height: 45),
-
-              // =========================
-              // QUESTION
-              // =========================
-
-              const Text(
-                'How would you like to continue?',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 20,
+                  fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF16324F),
                 ),
               ),
-
-              const SizedBox(height: 10),
-
+              const SizedBox(height: 6),
               const Text(
-                'Please select your role',
+                'Choose how you want\nto continue',
                 style: TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF7A8798),
+                  color: Color(0xFF16324F),
+                  fontSize: 32,
+                  height: 1.08,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
-
-              const SizedBox(height: 35),
-
-              // =========================
-              // PATIENT CARD
-              // =========================
-
+              const SizedBox(height: 12),
+              const Text(
+                'Your personalized hospital experience starts here.',
+                style: TextStyle(color: Color(0xFF718096), fontSize: 14),
+              ),
+              const SizedBox(height: 26),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(18),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF16324F),
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(
+                      Icons.verified_user_outlined,
+                      color: Color(0xFF8ED7C2),
+                      size: 25,
+                    ),
+                    SizedBox(width: 13),
+                    Expanded(
+                      child: Text(
+                        'Secure access for every member of your care team.',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 13,
+                          height: 1.35,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'SELECT YOUR ROLE',
+                style: TextStyle(
+                  color: Color(0xFF7B899A),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.5,
+                ),
+              ),
+              const SizedBox(height: 12),
               _RoleCard(
                 icon: Icons.person_rounded,
                 title: 'Patient',
                 subtitle: 'Book appointments and manage your queue',
                 iconColor: const Color(0xFF1976D2),
                 backgroundColor: const Color(0xFFEAF3FF),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const PatientLoginScreen(),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 20),
-
-              // =========================
-              // DOCTOR / NURSE CARD
-              // =========================
-
-              _RoleCard(
-                icon: Icons.medical_services_rounded,
-                title: 'Doctor / Nurse',
-                subtitle: 'Manage patients and hospital queues',
-                iconColor: const Color(0xFF6C63B5),
-                backgroundColor: const Color(0xFFF0EEFF),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const LoginScreen(),
-                    ),
-                  );
-                },
-              ),
-
-              const Spacer(),
-
-              // =========================
-              // BOTTOM TEXT
-              // =========================
-
-              const Text(
-                'SMART CARE • BETTER EXPERIENCE',
-                style: TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black38,
-                  letterSpacing: 1.2,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PatientLoginScreen()),
                 ),
               ),
-
               const SizedBox(height: 12),
+              _RoleCard(
+                icon: Icons.badge_rounded,
+                title: 'Doctor / Receptionist',
+                subtitle: 'Manage patients, appointments and hospital queues',
+                iconColor: const Color(0xFF6C63B5),
+                backgroundColor: const Color(0xFFF0EEFF),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _RoleCard(
+                icon: Icons.admin_panel_settings_rounded,
+                title: 'Admin',
+                subtitle: 'Review and approve professional accounts',
+                iconColor: const Color(0xFF16806A),
+                backgroundColor: const Color(0xFFE8F8F3),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminLoginScreen()),
+                ),
+              ),
+              const SizedBox(height: 26),
+              const Center(
+                child: Text(
+                  'SMART CARE  •  BETTER EXPERIENCE',
+                  style: TextStyle(
+                    color: Color(0xFF9AA8B7),
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.1,
+                  ),
+                ),
+              ),
             ],
-          ),
-        ),
-      ),
-    );
+          );
   }
 }
-
 
 // ============================================================
 // ROLE CARD WIDGET
@@ -186,24 +264,21 @@ class _RoleCard extends StatelessWidget {
 
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(18),
 
         child: Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(16),
 
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(22),
+            borderRadius: BorderRadius.circular(18),
 
-            border: Border.all(
-              color: const Color(0xFFE1E8F0),
-              width: 1.2,
-            ),
+            border: Border.all(color: const Color(0xFFE1E8F0), width: 1.2),
 
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 15,
                 offset: const Offset(0, 5),
               ),
@@ -212,22 +287,17 @@ class _RoleCard extends StatelessWidget {
 
           child: Row(
             children: [
-
               // Icon box
               Container(
-                height: 65,
-                width: 65,
+                height: 56,
+                width: 56,
 
                 decoration: BoxDecoration(
                   color: backgroundColor,
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(16),
                 ),
 
-                child: Icon(
-                  icon,
-                  size: 34,
-                  color: iconColor,
-                ),
+                child: Icon(icon, size: 34, color: iconColor),
               ),
 
               const SizedBox(width: 18),
@@ -237,7 +307,6 @@ class _RoleCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     Text(
                       title,
                       style: const TextStyle(
@@ -261,10 +330,18 @@ class _RoleCard extends StatelessWidget {
                 ),
               ),
 
-              const Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 18,
-                color: Color(0xFF9AA8BA),
+              Container(
+                height: 34,
+                width: 34,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF3F6FA),
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: const Icon(
+                  Icons.arrow_forward_rounded,
+                  size: 19,
+                  color: Color(0xFF718096),
+                ),
               ),
             ],
           ),

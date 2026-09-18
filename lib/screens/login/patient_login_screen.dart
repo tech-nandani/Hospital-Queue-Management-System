@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../patient/patient_register_screen.dart';
+import '../patient/patient_dashboard_screen.dart';
+import '../../services/patient_service.dart';
+import '../../widgets/hospital_workflow_visual.dart';
 
 class PatientLoginScreen extends StatefulWidget {
-  const PatientLoginScreen({super.key});
+  final String? initialEmail;
+  const PatientLoginScreen({super.key, this.initialEmail});
 
   @override
   State<PatientLoginScreen> createState() => _PatientLoginScreenState();
@@ -15,6 +20,16 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
   bool isPasswordVisible = false;
 
   @override
+  void initState() {
+    super.initState();
+    final prefill =
+        widget.initialEmail ?? PatientService.instance.rememberedEmail;
+    if (prefill != null && prefill.isNotEmpty) {
+      emailController.text = prefill;
+    }
+  }
+
+  @override
   void dispose() {
     emailController.dispose();
     passwordController.dispose();
@@ -23,416 +38,496 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF4F8FD),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isWideScreen = constraints.maxWidth >= 900;
 
-      body: SafeArea(
-        child: Stack(
-          children: [
-            // =========================
-            // BACKGROUND DECORATION
-            // =========================
-            Positioned(
-              top: -70,
-              right: -60,
-              child: Container(
-                height: 180,
-                width: 180,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFE8F2FF),
-                  shape: BoxShape.circle,
+        if (isWideScreen) {
+          return Scaffold(
+            backgroundColor: const Color(0xFFF4F8FD),
+            body: Row(
+              children: [
+                // ==========================================
+                // LEFT SIDE — HOSPITAL VISUAL / ANIMATION
+                // ==========================================
+                const Expanded(
+                  flex: 6,
+                  child: HospitalWorkflowVisual(
+                    showHeader: true,
+                    activeToken: 'A-104',
+                  ),
                 ),
-              ),
-            ),
 
-            Positioned(
-              top: 80,
-              left: -80,
-              child: Container(
-                height: 160,
-                width: 160,
-                decoration: const BoxDecoration(
-                  color: Color(0xFFEAF3FF),
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-
-            // =========================
-            // MAIN CONTENT
-            // =========================
-            Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 20,
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // =========================
-                    // LOGO
-                    // =========================
-                    Container(
-                      height: 72,
-                      width: 72,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(22),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.06),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Container(
-                          height: 42,
-                          width: 42,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE8F2FF),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.local_hospital_rounded,
-                            color: Color(0xFF1976D2),
-                            size: 27,
-                          ),
+                // ==========================================
+                // RIGHT SIDE — PATIENT LOGIN FORM
+                // ==========================================
+                Expanded(
+                  flex: 5,
+                  child: Container(
+                    height: double.infinity,
+                    color: const Color(0xFFF4F8FD),
+                    child: Center(
+                      child: SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 40,
+                          vertical: 32,
+                        ),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 480),
+                          child: _buildPatientLoginForm(context),
                         ),
                       ),
                     ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
 
-                    const SizedBox(height: 24),
+        return Scaffold(
+          backgroundColor: const Color(0xFFF4F8FD),
+          body: SafeArea(
+            child: Stack(
+              children: [
+                // =========================
+                // BACKGROUND DECORATION
+                // =========================
+                Positioned(
+                  top: -70,
+                  right: -60,
+                  child: Container(
+                    height: 180,
+                    width: 180,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFE8F2FF),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
 
-                    // =========================
-                    // APP TITLE
-                    // =========================
-                    const Text(
-                      'Hospital Queue',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF16324F),
+                Positioned(
+                  top: 80,
+                  left: -80,
+                  child: Container(
+                    height: 160,
+                    width: 160,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFFEAF3FF),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+
+                // =========================
+                // MAIN CONTENT
+                // =========================
+                Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 20,
+                    ),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 480),
+                      child: _buildPatientLoginForm(context),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildPatientLoginForm(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // =========================
+        // LOGO
+        // =========================
+        Container(
+          height: 72,
+          width: 72,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Center(
+            child: Container(
+              height: 42,
+              width: 42,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8F2FF),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.local_hospital_rounded,
+                color: Color(0xFF1976D2),
+                size: 27,
+              ),
+            ),
+          ),
+        ),
+
+        const SizedBox(height: 24),
+
+        // =========================
+        // APP TITLE
+        // =========================
+        const Text(
+          'CareFlow',
+          style: TextStyle(
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF16324F),
+            letterSpacing: 0.5,
+          ),
+        ),
+
+        const SizedBox(height: 38),
+
+        // =========================
+        // LOGIN CARD
+        // =========================
+        Container(
+          width: 540,
+          padding: const EdgeInsets.all(26),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: const Color(0xFFDCE6F2)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 24,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: AutofillGroup(
+            child: Column(
+              children: [
+                const Text(
+                  'Welcome Back!',
+                  style: TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF16324F),
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                const Text(
+                  'Sign in to continue managing your hospital visits.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Color(0xFF6B7A8C),
+                  ),
+                ),
+
+                const SizedBox(height: 26),
+
+                // =========================
+                // EMAIL / MOBILE
+                // =========================
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Email or Mobile Number',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF34495E),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 9),
+
+                TextField(
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  autofillHints: const [
+                    AutofillHints.email,
+                    AutofillHints.username,
+                  ],
+                  textInputAction: TextInputAction.next,
+                  decoration: InputDecoration(
+                    hintText: 'Enter your email or mobile number',
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF8A96A3),
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.person_outline_rounded,
+                      color: Color(0xFF1976D2),
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFD),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFD8E1EC),
                       ),
                     ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFD8E1EC),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF1976D2),
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
 
-                    const SizedBox(height: 4),
+                const SizedBox(height: 18),
 
-                    const Text(
-                      'Management System',
+                // =========================
+                // PASSWORD
+                // =========================
+                const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Password',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF34495E),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 9),
+
+                TextField(
+                  controller: passwordController,
+                  obscureText: !isPasswordVisible,
+                  autofillHints: const [AutofillHints.password],
+                  textInputAction: TextInputAction.done,
+                  onSubmitted: (_) => _login(),
+                  decoration: InputDecoration(
+                    hintText: 'Enter your password',
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF8A96A3),
+                    ),
+                    prefixIcon: const Icon(
+                      Icons.lock_outline_rounded,
+                      color: Color(0xFF1976D2),
+                    ),
+                    suffixIcon: IconButton(
+                      onPressed: () {
+                        setState(() {
+                          isPasswordVisible = !isPasswordVisible;
+                        });
+                      },
+                      icon: Icon(
+                        isPasswordVisible
+                            ? Icons.visibility_off_outlined
+                            : Icons.visibility_outlined,
+                        color: const Color(0xFF6B7A8C),
+                      ),
+                    ),
+                    filled: true,
+                    fillColor: const Color(0xFFF8FAFD),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFD8E1EC),
+                      ),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFD8E1EC),
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: const BorderSide(
+                        color: Color(0xFF1976D2),
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                ),
+
+                // =========================
+                // FORGOT PASSWORD
+                // =========================
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {},
+                    child: const Text(
+                      'Forgot Password?',
+                      style: TextStyle(
+                        color: Color(0xFF2F6FAF),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 4),
+
+                // =========================
+                // LOGIN BUTTON
+                // =========================
+                SizedBox(
+                  width: double.infinity,
+                  height: 58,
+                  child: ElevatedButton(
+                    onPressed: _login,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1976D2),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: const Text(
+                      'Login',
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF2F6FAF),
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
+                  ),
+                ),
 
-                    const SizedBox(height: 38),
+                const SizedBox(height: 24),
 
-                    // =========================
-                    // LOGIN CARD
-                    // =========================
-                    Container(
-                      width: 540,
-                      padding: const EdgeInsets.all(26),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(28),
-                        border: Border.all(
-                          color: const Color(0xFFDCE6F2),
+                // =========================
+                // OR DIVIDER
+                // =========================
+                const Row(
+                  children: [
+                    Expanded(
+                      child: Divider(color: Color(0xFFDCE4EE)),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        'OR',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF8A96A3),
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.05),
-                            blurRadius: 24,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-
-                      child: Column(
-                        children: [
-                          const Text(
-                            'Welcome Back!',
-                            style: TextStyle(
-                              fontSize: 25,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF16324F),
-                            ),
-                          ),
-
-                          const SizedBox(height: 8),
-
-                          const Text(
-                            'Sign in to continue managing your hospital visits.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 15,
-                              color: Color(0xFF6B7A8C),
-                            ),
-                          ),
-
-                          const SizedBox(height: 26),
-
-                          // =========================
-                          // EMAIL / MOBILE
-                          // =========================
-                          const Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              'Email or Mobile Number',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF34495E),
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 9),
-
-                          TextField(
-                            controller: emailController,
-                            keyboardType: TextInputType.emailAddress,
-                            decoration: InputDecoration(
-                              hintText: 'Enter your email or mobile number',
-                              hintStyle: const TextStyle(
-                                color: Color(0xFF8A96A3),
-                              ),
-                              prefixIcon: const Icon(
-                                Icons.person_outline_rounded,
-                                color: Color(0xFF1976D2),
-                              ),
-                              filled: true,
-                              fillColor: const Color(0xFFF8FAFD),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFD8E1EC),
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFD8E1EC),
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFF1976D2),
-                                  width: 1.5,
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 18),
-
-                          // =========================
-                          // PASSWORD
-                          // =========================
-                          const Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(
-                              'Password',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF34495E),
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 9),
-
-                          TextField(
-                            controller: passwordController,
-                            obscureText: !isPasswordVisible,
-                            decoration: InputDecoration(
-                              hintText: 'Enter your password',
-                              hintStyle: const TextStyle(
-                                color: Color(0xFF8A96A3),
-                              ),
-                              prefixIcon: const Icon(
-                                Icons.lock_outline_rounded,
-                                color: Color(0xFF1976D2),
-                              ),
-                              suffixIcon: IconButton(
-                                onPressed: () {
-                                  setState(() {
-                                    isPasswordVisible =
-                                    !isPasswordVisible;
-                                  });
-                                },
-                                icon: Icon(
-                                  isPasswordVisible
-                                      ? Icons.visibility_off_outlined
-                                      : Icons.visibility_outlined,
-                                  color: const Color(0xFF6B7A8C),
-                                ),
-                              ),
-                              filled: true,
-                              fillColor: const Color(0xFFF8FAFD),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFD8E1EC),
-                                ),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFD8E1EC),
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(16),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFF1976D2),
-                                  width: 1.5,
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          // =========================
-                          // FORGOT PASSWORD
-                          // =========================
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: () {},
-                              child: const Text(
-                                'Forgot Password?',
-                                style: TextStyle(
-                                  color: Color(0xFF2F6FAF),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 4),
-
-                          // =========================
-                          // LOGIN BUTTON
-                          // =========================
-                          SizedBox(
-                            width: double.infinity,
-                            height: 58,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                // Patient login functionality later
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                const Color(0xFF1976D2),
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius:
-                                  BorderRadius.circular(16),
-                                ),
-                              ),
-                              child: const Text(
-                                'Login',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-
-                          const SizedBox(height: 24),
-
-                          // =========================
-                          // OR DIVIDER
-                          // =========================
-                          const Row(
-                            children: [
-                              Expanded(
-                                child: Divider(
-                                  color: Color(0xFFDCE4EE),
-                                ),
-                              ),
-                              Padding(
-                                padding:
-                                EdgeInsets.symmetric(horizontal: 12),
-                                child: Text(
-                                  'OR',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFF8A96A3),
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Divider(
-                                  color: Color(0xFFDCE4EE),
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 20),
-
-                          // =========================
-                          // CREATE ACCOUNT
-                          // =========================
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                "Don't have an account? ",
-                                style: TextStyle(
-                                  color: Color(0xFF6B7A8C),
-                                ),
-                              ),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const PatientRegisterScreen(),
-                                    ),
-                                  );
-                                },
-                                child: const Text(
-                                  'Create Account',
-                                  style: TextStyle(
-                                    color: Color(0xFF2F6FAF),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
                       ),
                     ),
+                    Expanded(
+                      child: Divider(color: Color(0xFFDCE4EE)),
+                    ),
+                  ],
+                ),
 
-                    const SizedBox(height: 28),
+                const SizedBox(height: 20),
 
+                // =========================
+                // CREATE ACCOUNT
+                // =========================
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
                     const Text(
-                      'YOUR HEALTH • OUR PRIORITY',
-                      style: TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1.5,
-                        color: Color(0xFF8A96A3),
+                      "Don't have an account? ",
+                      style: TextStyle(color: Color(0xFF6B7A8C)),
+                    ),
+                    GestureDetector(
+                      onTap: () async {
+                        final registeredEmail =
+                            await Navigator.push<String>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const PatientRegisterScreen(),
+                          ),
+                        );
+                        if (registeredEmail != null &&
+                            registeredEmail.isNotEmpty) {
+                          emailController.text = registeredEmail;
+                        }
+                      },
+                      child: const Text(
+                        'Create Account',
+                        style: TextStyle(
+                          color: Color(0xFF2F6FAF),
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
+
+        const SizedBox(height: 28),
+
+        const Text(
+          'YOUR HEALTH • OUR PRIORITY',
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1.5,
+            color: Color(0xFF8A96A3),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _login() async {
+    try {
+      await PatientService.instance.loginWithBackend(
+        email: emailController.text,
+        password: passwordController.text,
+      );
+    } catch (error) {
+      if (!mounted) return;
+      var raw = error
+          .toString()
+          .replaceFirst('Exception: ', '')
+          .replaceFirst('ClientException: ', '');
+      if (raw.toLowerCase().contains('failed to fetch') ||
+          raw.toLowerCase().contains('clientfailed') ||
+          raw.toLowerCase().contains('connection refused')) {
+        raw =
+            'Unable to connect to backend server. Please make sure the Django server is running on http://127.0.0.1:8000';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(raw)),
+      );
+      return;
+    }
+
+    if (!mounted) return;
+    PatientService.instance.rememberedEmail = emailController.text.trim();
+    TextInput.finishAutofillContext();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const PatientDashboardScreen()),
     );
   }
 }

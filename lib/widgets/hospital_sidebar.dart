@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 enum HospitalSidebarPage {
   dashboard,
   todayQueue,
+  addPatient,
 }
 
 class HospitalSidebar extends StatelessWidget {
@@ -69,24 +70,13 @@ class HospitalSidebar extends StatelessWidget {
           const SizedBox(height: 10),
 
           const Text(
-            'Hospital Queue',
+            'CareFlow',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 19,
+              fontSize: 22,
               fontWeight: FontWeight.bold,
               color: navy,
-            ),
-          ),
-
-          const SizedBox(height: 3),
-
-          const Text(
-            'Management System',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 11,
-              color: blue,
-              fontWeight: FontWeight.w600,
+              letterSpacing: 0.5,
             ),
           ),
 
@@ -134,6 +124,10 @@ class HospitalSidebar extends StatelessWidget {
                   _SidebarItem(
                     icon: Icons.person_add_alt_1_rounded,
                     title: 'Add Patient',
+
+                    // ADD PATIENT PAGE SELECTED
+                    selected: selectedPage == HospitalSidebarPage.addPatient,
+
                     onTap: onAddPatientTap ??
                             () {
                           _showComingSoon(

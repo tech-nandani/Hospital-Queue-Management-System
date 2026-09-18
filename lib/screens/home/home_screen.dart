@@ -19,7 +19,6 @@ class _HomeScreenState extends State<HomeScreen> {
       // =========================================================
       // APP BAR
       // =========================================================
-
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -78,7 +77,6 @@ class _HomeScreenState extends State<HomeScreen> {
       // =========================================================
       // BODY
       // =========================================================
-
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -93,11 +91,9 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
                   // =================================================
                   // GREETING
                   // =================================================
-
                   const Text(
                     "Hello! 👋",
                     style: TextStyle(
@@ -111,10 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   const Text(
                     "We wish you good health!",
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.grey,
-                    ),
+                    style: TextStyle(fontSize: 15, color: Colors.grey),
                   ),
 
                   const SizedBox(height: 22),
@@ -122,24 +115,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   // =================================================
                   // SEARCH BAR
                   // =================================================
-
                   Container(
                     height: 58,
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: const Color(0xffDCE6F0),
-                      ),
+                      border: Border.all(color: const Color(0xffDCE6F0)),
                     ),
 
                     child: const TextField(
                       decoration: InputDecoration(
                         hintText: "Search doctors, services...",
 
-                        hintStyle: TextStyle(
-                          color: Colors.grey,
-                        ),
+                        hintStyle: TextStyle(color: Colors.grey),
 
                         prefixIcon: Icon(
                           Icons.search,
@@ -149,9 +137,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         border: InputBorder.none,
 
-                        contentPadding: EdgeInsets.symmetric(
-                          vertical: 17,
-                        ),
+                        contentPadding: EdgeInsets.symmetric(vertical: 17),
                       ),
                     ),
                   ),
@@ -161,7 +147,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   // =================================================
                   // BLUE HEALTH BANNER
                   // =================================================
-
                   Container(
                     width: double.infinity,
                     height: 150,
@@ -173,10 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [
-                          Color(0xff1976D2),
-                          Color(0xff42A5F5),
-                        ],
+                        colors: [Color(0xff1976D2), Color(0xff42A5F5)],
                         begin: Alignment.centerLeft,
                         end: Alignment.centerRight,
                       ),
@@ -186,21 +168,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
                     child: Row(
                       children: [
-
                         // -------------------------------------------------
                         // BANNER TEXT
                         // -------------------------------------------------
-
                         Expanded(
                           child: Column(
-                            crossAxisAlignment:
-                            CrossAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
 
-                            mainAxisAlignment:
-                            MainAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.center,
 
                             children: [
-
                               const Text(
                                 "Your health,\nour priority.",
                                 style: TextStyle(
@@ -215,10 +192,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
                               Text(
                                 "Manage your hospital visits\n"
-                                    "easily from one place.",
+                                "easily from one place.",
 
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(0.85),
+                                  color: Colors.white.withValues(alpha: 0.85),
                                   fontSize: 13,
                                   height: 1.2,
                                 ),
@@ -230,13 +207,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         // -------------------------------------------------
                         // BANNER ICON
                         // -------------------------------------------------
-
                         Container(
                           height: 88,
                           width: 88,
 
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.18),
+                            color: Colors.white.withValues(alpha: 0.18),
                             borderRadius: BorderRadius.circular(22),
                           ),
 
@@ -255,7 +231,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   // =================================================
                   // QUICK SERVICES
                   // =================================================
-
                   const Text(
                     "Quick Services",
                     style: TextStyle(
@@ -273,39 +248,31 @@ class _HomeScreenState extends State<HomeScreen> {
                     crossAxisSpacing: 14,
                     mainAxisSpacing: 14,
 
-                    childAspectRatio:
-                    isDesktop ? 1.25 : 1.05,
+                    childAspectRatio: isDesktop ? 1.25 : 1.05,
 
                     shrinkWrap: true,
 
-                    physics:
-                    const NeverScrollableScrollPhysics(),
+                    physics: const NeverScrollableScrollPhysics(),
 
                     children: [
-
                       // =================================================
                       // BOOK APPOINTMENT
                       // =================================================
-
                       ServiceCard(
                         title: "Book\nAppointment",
 
-                        icon:
-                        Icons.calendar_month_outlined,
+                        icon: Icons.calendar_month_outlined,
 
-                        iconColor:
-                        const Color(0xff1976D2),
+                        iconColor: const Color(0xff1976D2),
 
-                        iconBackground:
-                        const Color(0xffE8F3FF),
+                        iconBackground: const Color(0xffE8F3FF),
 
                         onTap: () {
                           Navigator.push(
                             context,
 
                             MaterialPageRoute(
-                              builder: (context) =>
-                              const AppointmentScreen(),
+                              builder: (context) => const AppointmentScreen(),
                             ),
                           );
                         },
@@ -314,69 +281,51 @@ class _HomeScreenState extends State<HomeScreen> {
                       // =================================================
                       // FIND DOCTORS
                       // =================================================
-
                       ServiceCard(
                         title: "Find\nDoctors",
 
-                        icon:
-                        Icons.medical_services_outlined,
+                        icon: Icons.medical_services_outlined,
 
-                        iconColor:
-                        const Color(0xff00A86B),
+                        iconColor: const Color(0xff00A86B),
 
-                        iconBackground:
-                        const Color(0xffE5F8F1),
+                        iconBackground: const Color(0xffE5F8F1),
 
                         onTap: () {
-                          _showComingSoon(
-                            "Find Doctors",
-                          );
+                          _showComingSoon("Find Doctors");
                         },
                       ),
 
                       // =================================================
                       // MY APPOINTMENTS
                       // =================================================
-
                       ServiceCard(
                         title: "My\nAppointments",
 
-                        icon:
-                        Icons.assignment_outlined,
+                        icon: Icons.assignment_outlined,
 
-                        iconColor:
-                        const Color(0xffffa000),
+                        iconColor: const Color(0xffffa000),
 
-                        iconBackground:
-                        const Color(0xfffff4dd),
+                        iconBackground: const Color(0xfffff4dd),
 
                         onTap: () {
-                          _showComingSoon(
-                            "My Appointments",
-                          );
+                          _showComingSoon("My Appointments");
                         },
                       ),
 
                       // =================================================
                       // MY QUEUE
                       // =================================================
-
                       ServiceCard(
                         title: "My\nQueue",
 
-                        icon:
-                        Icons.confirmation_number_outlined,
+                        icon: Icons.confirmation_number_outlined,
 
-                        iconColor:
-                        const Color(0xff8B5CF6),
+                        iconColor: const Color(0xff8B5CF6),
 
-                        iconBackground:
-                        const Color(0xffF0E9FF),
+                        iconBackground: const Color(0xffF0E9FF),
 
                         onTap: () {
-                          _showComingSoon(
-                            "My Queue",
-                          );
+                          _showComingSoon("My Queue");
                         },
                       ),
                     ],
@@ -387,13 +336,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   // =================================================
                   // UPCOMING APPOINTMENT
                   // =================================================
-
                   Row(
-                    mainAxisAlignment:
-                    MainAxisAlignment.spaceBetween,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
 
                     children: [
-
                       const Text(
                         "Upcoming Appointment",
 
@@ -424,16 +370,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   // =================================================
                   // UPCOMING APPOINTMENT CARD
                   // =================================================
-
                   _emptyInfoCard(
-                    icon:
-                    Icons.calendar_month_outlined,
+                    icon: Icons.calendar_month_outlined,
 
-                    title:
-                    "No upcoming appointments",
+                    title: "No upcoming appointments",
 
-                    subtitle:
-                    "Your appointments will appear here.",
+                    subtitle: "Your appointments will appear here.",
                   ),
 
                   const SizedBox(height: 30),
@@ -441,7 +383,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   // =================================================
                   // QUEUE STATUS
                   // =================================================
-
                   const Text(
                     "Queue Status",
 
@@ -455,14 +396,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 14),
 
                   _emptyInfoCard(
-                    icon:
-                    Icons.confirmation_number_outlined,
+                    icon: Icons.confirmation_number_outlined,
 
-                    title:
-                    "No active queue",
+                    title: "No active queue",
 
-                    subtitle:
-                    "Your queue status will appear here.",
+                    subtitle: "Your queue status will appear here.",
                   ),
 
                   const SizedBox(height: 20),
@@ -476,9 +414,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // =========================================================
       // BOTTOM NAVIGATION
       // =========================================================
-
-      bottomNavigationBar:
-      _buildBottomNavigationBar(),
+      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
@@ -499,17 +435,13 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
 
-        borderRadius:
-        BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(18),
 
-        border: Border.all(
-          color: const Color(0xffDCE6F0),
-        ),
+        border: Border.all(color: const Color(0xffDCE6F0)),
       ),
 
       child: Row(
         children: [
-
           Container(
             height: 58,
             width: 58,
@@ -517,26 +449,19 @@ class _HomeScreenState extends State<HomeScreen> {
             decoration: BoxDecoration(
               color: const Color(0xffE8F3FF),
 
-              borderRadius:
-              BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(16),
             ),
 
-            child: Icon(
-              icon,
-              color: const Color(0xff1976D2),
-              size: 28,
-            ),
+            child: Icon(icon, color: const Color(0xff1976D2), size: 28),
           ),
 
           const SizedBox(width: 16),
 
           Expanded(
             child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
-
                 Text(
                   title,
 
@@ -552,10 +477,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Text(
                   subtitle,
 
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
-                  ),
+                  style: const TextStyle(fontSize: 14, color: Colors.grey),
                 ),
               ],
             ),
@@ -574,31 +496,22 @@ class _HomeScreenState extends State<HomeScreen> {
       decoration: const BoxDecoration(
         color: Colors.white,
 
-        border: Border(
-          top: BorderSide(
-            color: Color(0xffE5E7EB),
-          ),
-        ),
+        border: Border(top: BorderSide(color: Color(0xffE5E7EB))),
       ),
 
       child: SafeArea(
         child: BottomNavigationBar(
-          currentIndex:
-          selectedNavIndex,
+          currentIndex: selectedNavIndex,
 
-          backgroundColor:
-          Colors.white,
+          backgroundColor: Colors.white,
 
           elevation: 0,
 
-          type:
-          BottomNavigationBarType.fixed,
+          type: BottomNavigationBarType.fixed,
 
-          selectedItemColor:
-          const Color(0xff1976D2),
+          selectedItemColor: const Color(0xff1976D2),
 
-          unselectedItemColor:
-          Colors.grey,
+          unselectedItemColor: Colors.grey,
 
           selectedFontSize: 13,
 
@@ -621,51 +534,34 @@ class _HomeScreenState extends State<HomeScreen> {
           },
 
           items: const [
-
             BottomNavigationBarItem(
-              icon: Icon(
-                Icons.home_outlined,
-              ),
+              icon: Icon(Icons.home_outlined),
 
-              activeIcon: Icon(
-                Icons.home,
-              ),
+              activeIcon: Icon(Icons.home),
 
               label: "Home",
             ),
 
             BottomNavigationBarItem(
-              icon: Icon(
-                Icons.calendar_month_outlined,
-              ),
+              icon: Icon(Icons.calendar_month_outlined),
 
-              activeIcon: Icon(
-                Icons.calendar_month,
-              ),
+              activeIcon: Icon(Icons.calendar_month),
 
               label: "Appointments",
             ),
 
             BottomNavigationBarItem(
-              icon: Icon(
-                Icons.confirmation_number_outlined,
-              ),
+              icon: Icon(Icons.confirmation_number_outlined),
 
-              activeIcon: Icon(
-                Icons.confirmation_number,
-              ),
+              activeIcon: Icon(Icons.confirmation_number),
 
               label: "Queue",
             ),
 
             BottomNavigationBarItem(
-              icon: Icon(
-                Icons.person_outline,
-              ),
+              icon: Icon(Icons.person_outline),
 
-              activeIcon: Icon(
-                Icons.person,
-              ),
+              activeIcon: Icon(Icons.person),
 
               label: "Profile",
             ),
@@ -682,12 +578,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showComingSoon(String name) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(
-          "$name page will be connected next.",
-        ),
+        content: Text("$name page will be connected next."),
 
-        behavior:
-        SnackBarBehavior.floating,
+        behavior: SnackBarBehavior.floating,
       ),
     );
   }
@@ -721,51 +614,40 @@ class ServiceCard extends StatelessWidget {
     return Material(
       color: Colors.white,
 
-      borderRadius:
-      BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(20),
 
       child: InkWell(
-        borderRadius:
-        BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(20),
 
         onTap: onTap,
 
         child: Container(
-          padding:
-          const EdgeInsets.all(18),
+          padding: const EdgeInsets.all(18),
 
           decoration: BoxDecoration(
             color: Colors.white,
 
-            borderRadius:
-            BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(20),
 
-            border: Border.all(
-              color: const Color(0xffEDF1F5),
-            ),
+            border: Border.all(color: const Color(0xffEDF1F5)),
 
             boxShadow: [
               BoxShadow(
-                color:
-                Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
 
                 blurRadius: 12,
 
-                offset:
-                const Offset(0, 4),
+                offset: const Offset(0, 4),
               ),
             ],
           ),
 
           child: Column(
-            crossAxisAlignment:
-            CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
 
-            mainAxisAlignment:
-            MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
 
             children: [
-
               Container(
                 height: 50,
                 width: 50,
@@ -773,17 +655,10 @@ class ServiceCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: iconBackground,
 
-                  borderRadius:
-                  BorderRadius.circular(15),
+                  borderRadius: BorderRadius.circular(15),
                 ),
 
-                child: Icon(
-                  icon,
-
-                  color: iconColor,
-
-                  size: 27,
-                ),
+                child: Icon(icon, color: iconColor, size: 27),
               ),
 
               const SizedBox(height: 16),

@@ -1,6 +1,6 @@
 {
-    "name": "hospital_queue_management",
-    "short_name": "hospital_queue_management",
+    "name": "CareFlow",
+    "short_name": "CareFlow",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

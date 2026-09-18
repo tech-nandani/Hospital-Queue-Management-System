@@ -1,0 +1,17 @@
+const hospitalDepartments = [
+  'General Medicine',
+  'Cardiology',
+  'Neurology',
+  'Pediatrics',
+  'Orthopedics',
+  'Dermatology',
+  'Gynecology',
+  'Ophthalmology',
+  'ENT',
+  'Dentistry',
+  'Pulmonology',
+  'Gastroenterology',
+  'Psychiatry',
+  'Oncology',
+  'Emergency Medicine',
+];

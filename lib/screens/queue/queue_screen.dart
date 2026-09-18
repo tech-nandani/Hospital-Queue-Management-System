@@ -16,10 +16,7 @@ class QueueScreen extends StatelessWidget {
           onPressed: () {
             Navigator.pop(context);
           },
-          icon: const Icon(
-            Icons.arrow_back_rounded,
-            color: Color(0xFF1976D2),
-          ),
+          icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF1976D2)),
         ),
 
         title: const Text(
@@ -41,21 +38,16 @@ class QueueScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
 
           children: [
-
             // =========================
             // HEADER
             // =========================
-
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(22),
 
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [
-                    Color(0xFF1976D2),
-                    Color(0xFF42A5F5),
-                  ],
+                  colors: [Color(0xFF1976D2), Color(0xFF42A5F5)],
                 ),
 
                 borderRadius: BorderRadius.circular(20),
@@ -63,13 +55,12 @@ class QueueScreen extends StatelessWidget {
 
               child: Row(
                 children: [
-
                   Container(
                     height: 58,
                     width: 58,
 
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.18),
+                      color: Colors.white.withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(16),
                     ),
 
@@ -84,11 +75,9 @@ class QueueScreen extends StatelessWidget {
 
                   const Expanded(
                     child: Column(
-                      crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
 
                       children: [
-
                         Text(
                           "Your Queue",
                           style: TextStyle(
@@ -102,7 +91,7 @@ class QueueScreen extends StatelessWidget {
 
                         Text(
                           "Track your position and waiting "
-                              "time in one place.",
+                          "time in one place.",
                           style: TextStyle(
                             color: Colors.white70,
                             fontSize: 12,
@@ -121,27 +110,20 @@ class QueueScreen extends StatelessWidget {
             // =========================
             // EMPTY QUEUE
             // =========================
-
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 25,
-                vertical: 35,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 25, vertical: 35),
 
               decoration: BoxDecoration(
                 color: Colors.white,
 
                 borderRadius: BorderRadius.circular(20),
 
-                border: Border.all(
-                  color: const Color(0xFFE2E8F0),
-                ),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
               ),
 
               child: Column(
                 children: [
-
                   Container(
                     height: 85,
                     width: 85,
@@ -173,7 +155,7 @@ class QueueScreen extends StatelessWidget {
 
                   const Text(
                     "You don't have an active queue right now.\n"
-                        "Book an appointment to get started.",
+                    "Book an appointment to get started.",
                     textAlign: TextAlign.center,
 
                     style: TextStyle(
@@ -193,22 +175,18 @@ class QueueScreen extends StatelessWidget {
                       onPressed: () {},
 
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                        const Color(0xFF1976D2),
+                        backgroundColor: const Color(0xFF1976D2),
 
                         foregroundColor: Colors.white,
 
                         shape: RoundedRectangleBorder(
-                          borderRadius:
-                          BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
 
                       child: const Text(
                         "Book Appointment",
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -221,7 +199,6 @@ class QueueScreen extends StatelessWidget {
             // =========================
             // HOW IT WORKS
             // =========================
-
             const Text(
               "How Queue Works",
               style: TextStyle(
@@ -237,32 +214,28 @@ class QueueScreen extends StatelessWidget {
               number: "01",
               icon: Icons.calendar_month_outlined,
               title: "Book an appointment",
-              subtitle:
-              "Choose your department, doctor, date and time.",
+              subtitle: "Choose your department, doctor, date and time.",
             ),
 
             const QueueStep(
               number: "02",
               icon: Icons.confirmation_number_outlined,
               title: "Receive your queue position",
-              subtitle:
-              "Your queue position will be generated after booking.",
+              subtitle: "Your queue position will be generated after booking.",
             ),
 
             const QueueStep(
               number: "03",
               icon: Icons.track_changes_outlined,
               title: "Track your position",
-              subtitle:
-              "Monitor your queue status from the app.",
+              subtitle: "Monitor your queue status from the app.",
             ),
 
             const QueueStep(
               number: "04",
               icon: Icons.notifications_none_rounded,
               title: "Get notified",
-              subtitle:
-              "Receive notifications when your turn is approaching.",
+              subtitle: "Receive notifications when your turn is approaching.",
             ),
 
             const SizedBox(height: 20),
@@ -272,7 +245,6 @@ class QueueScreen extends StatelessWidget {
     );
   }
 }
-
 
 // =====================================================
 // QUEUE STEP
@@ -304,14 +276,11 @@ class QueueStep extends StatelessWidget {
 
         borderRadius: BorderRadius.circular(16),
 
-        border: Border.all(
-          color: const Color(0xFFE5EAF0),
-        ),
+        border: Border.all(color: const Color(0xFFE5EAF0)),
       ),
 
       child: Row(
         children: [
-
           Container(
             height: 48,
             width: 48,
@@ -321,22 +290,16 @@ class QueueStep extends StatelessWidget {
               borderRadius: BorderRadius.circular(13),
             ),
 
-            child: Icon(
-              icon,
-              color: const Color(0xFF1976D2),
-              size: 24,
-            ),
+            child: Icon(icon, color: const Color(0xFF1976D2), size: 24),
           ),
 
           const SizedBox(width: 13),
 
           Expanded(
             child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
 
               children: [
-
                 Text(
                   "$number  $title",
                   style: const TextStyle(

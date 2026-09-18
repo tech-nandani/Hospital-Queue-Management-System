@@ -8,8 +8,7 @@ class QueueService extends ChangeNotifier {
 
   final List<QueuePatient> _patients = [];
 
-  List<QueuePatient> get patients =>
-      List.unmodifiable(_patients);
+  List<QueuePatient> get patients => List.unmodifiable(_patients);
 
   // ============================================================
   // COUNTS
@@ -17,38 +16,33 @@ class QueueService extends ChangeNotifier {
 
   int get totalPatients => _patients.length;
 
-  int get waitingCount =>
-      _patients.where((p) => p.status == 'Waiting').length;
+  int get waitingCount => _patients.where((p) => p.status == 'Waiting').length;
 
   int get consultationCount =>
-      _patients
-          .where((p) => p.status == 'In Consultation')
-          .length;
+      _patients.where((p) => p.status == 'In Consultation').length;
 
   int get completedCount =>
       _patients.where((p) => p.status == 'Completed').length;
 
-  int get noShowCount =>
-      _patients.where((p) => p.status == 'No Show').length;
+  int get noShowCount => _patients.where((p) => p.status == 'No Show').length;
 
-  int get queueCount =>
-      _patients
-          .where(
-            (p) =>
-        p.status == 'Waiting' ||
-            p.status == 'In Consultation',
-      )
-          .length;
+  int get queueCount => _patients
+      .where((p) => p.status == 'Waiting' || p.status == 'In Consultation')
+      .length;
 
-  int get priorityCount =>
-      _patients
-          .where(
-            (p) =>
-        p.priority == 'High' &&
+  int get priorityCount => _patients
+      .where(
+        (p) =>
+            p.priority == 'High' &&
             p.status != 'Completed' &&
             p.status != 'No Show',
       )
-          .length;
+      .length;
+
+  int get averageWaitingMinutes {
+    final waiting = _patients.where((p) => p.status == 'Waiting').length;
+    return waiting == 0 ? 0 : waiting * 12;
+  }
 
   // ============================================================
   // ADD PATIENT
@@ -62,18 +56,12 @@ class QueueService extends ChangeNotifier {
     required String reason,
     required String priority,
   }) {
-    final int nextToken =
-    _patients.isEmpty
+    final int nextToken = _patients.isEmpty
         ? 1
-        : _patients
-        .map((p) => p.token)
-        .reduce((a, b) => a > b ? a : b) +
-        1;
+        : _patients.map((p) => p.token).reduce((a, b) => a > b ? a : b) + 1;
 
     final patient = QueuePatient(
-      id: DateTime.now()
-          .microsecondsSinceEpoch
-          .toString(),
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
       name: name,
       age: age,
       gender: gender,
@@ -102,8 +90,7 @@ class QueueService extends ChangeNotifier {
       if (patient.status == 'Waiting') {
         if (next == null) {
           next = patient;
-        } else if (patient.priority == 'High' &&
-            next.priority != 'High') {
+        } else if (patient.priority == 'High' && next.priority != 'High') {
           next = patient;
         } else if (patient.priority == next.priority &&
             patient.token < next.token) {
@@ -128,8 +115,7 @@ class QueueService extends ChangeNotifier {
   // ============================================================
 
   void completePatient(String id) {
-    final index =
-    _patients.indexWhere((p) => p.id == id);
+    final index = _patients.indexWhere((p) => p.id == id);
 
     if (index == -1) return;
 
@@ -143,13 +129,33 @@ class QueueService extends ChangeNotifier {
   // ============================================================
 
   void markNoShow(String id) {
-    final index =
-    _patients.indexWhere((p) => p.id == id);
+    final index = _patients.indexWhere((p) => p.id == id);
 
     if (index == -1) return;
 
     _patients[index].status = 'No Show';
 
+    notifyListeners();
+  }
+
+  void skipPatient(String id) {
+    final index = _patients.indexWhere((p) => p.id == id);
+    if (index == -1) return;
+    _patients[index].status = 'No Show';
+    notifyListeners();
+  }
+
+  void recallPatient(String id) {
+    final index = _patients.indexWhere((p) => p.id == id);
+    if (index == -1) return;
+    _patients[index].status = 'Waiting';
+    notifyListeners();
+  }
+
+  void updateStatus(String id, String status) {
+    final index = _patients.indexWhere((p) => p.id == id);
+    if (index == -1) return;
+    _patients[index].status = status;
     notifyListeners();
   }
 
@@ -160,16 +166,13 @@ class QueueService extends ChangeNotifier {
   String _currentTime() {
     final now = DateTime.now();
 
-    final hour =
-    now.hour > 12 ? now.hour - 12 : now.hour;
+    final hour = now.hour > 12 ? now.hour - 12 : now.hour;
 
     final displayHour = hour == 0 ? 12 : hour;
 
-    final minute =
-    now.minute.toString().padLeft(2, '0');
+    final minute = now.minute.toString().padLeft(2, '0');
 
-    final period =
-    now.hour >= 12 ? 'PM' : 'AM';
+    final period = now.hour >= 12 ? 'PM' : 'AM';
 
     return '$displayHour:$minute $period';
   }

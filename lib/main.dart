@@ -3,17 +3,17 @@ import 'screens/splash/splash_screen.dart';
 import 'theme/app_theme.dart';
 
 void main() {
-  runApp(const HospitalQueueApp());
+  runApp(const CareFlowApp());
 }
 
-class HospitalQueueApp extends StatelessWidget {
-  const HospitalQueueApp({super.key});
+class CareFlowApp extends StatelessWidget {
+  const CareFlowApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Hospital Queue Management',
+      title: 'CareFlow',
 
       theme:AppTheme.lightTheme,
 

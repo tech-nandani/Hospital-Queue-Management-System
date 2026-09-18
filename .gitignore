@@ -43,3 +43,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Django backend local environment and database
+backend/.venv/
+backend/db.sqlite3
+backend/__pycache__/
+backend/**/__pycache__/

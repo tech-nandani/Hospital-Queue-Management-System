@@ -1,500 +1,565 @@
-import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
 
 import '../../models/queue_patient.dart';
+import '../../services/doctor_service.dart';
 import '../../services/queue_service.dart';
-import '../queue/today_queue_screen.dart';
-import '../queue/add_patient_screen.dart';
-import '../../widgets/hospital_sidebar.dart';
 
 class DoctorDashboardScreen extends StatefulWidget {
-  const DoctorDashboardScreen({super.key});
+  final String doctorName;
+  final String department;
+
+  const DoctorDashboardScreen({
+    super.key,
+    this.doctorName = 'Doctor',
+    this.department = 'Department',
+  });
 
   @override
-  State<DoctorDashboardScreen> createState() =>
-      _DoctorDashboardScreenState();
+  State<DoctorDashboardScreen> createState() => _DoctorDashboardScreenState();
 }
 
-class _DoctorDashboardScreenState
-    extends State<DoctorDashboardScreen> {
-  final QueueService queueService = QueueService.instance;
+class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
+  final queue = QueueService.instance;
+  final doctor = DoctorService.instance;
+  int selectedIndex = 0;
 
   @override
   void initState() {
     super.initState();
-    queueService.addListener(_refresh);
+    queue.addListener(_refresh);
+    doctor.addListener(_refresh);
   }
 
   @override
   void dispose() {
-    queueService.removeListener(_refresh);
+    queue.removeListener(_refresh);
+    doctor.removeListener(_refresh);
     super.dispose();
   }
 
   void _refresh() {
-    if (mounted) {
-      setState(() {});
+    if (mounted) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final desktop = MediaQuery.sizeOf(context).width >= 900;
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F8FD),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF4F8FD),
+        foregroundColor: const Color(0xFF16324F),
+        elevation: 0,
+        title: const Text(
+          'Doctor Command Center',
+          style: TextStyle(fontWeight: FontWeight.w800),
+        ),
+        actions: [
+          IconButton(
+            tooltip: 'Notifications',
+            onPressed: () => _showNotifications(context),
+            icon: Badge(
+              isLabelVisible: queue.priorityCount > 0,
+              label: Text('${queue.priorityCount}'),
+              child: const Icon(Icons.notifications_none_rounded),
+            ),
+          ),
+          IconButton(
+            tooltip: 'Logout',
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.logout_rounded),
+          ),
+        ],
+      ),
+      body: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (desktop)
+            _DoctorSideRail(
+              selectedIndex: selectedIndex,
+              onSelected: (index) => setState(() => selectedIndex = index),
+            ),
+          Expanded(child: _page(desktop)),
+        ],
+      ),
+      bottomNavigationBar: desktop
+          ? null
+          : NavigationBar(
+              selectedIndex: selectedIndex,
+              onDestinationSelected: (index) =>
+                  setState(() => selectedIndex = index),
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.dashboard_outlined),
+                  selectedIcon: Icon(Icons.dashboard_rounded),
+                  label: 'Home',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.people_outline),
+                  selectedIcon: Icon(Icons.people),
+                  label: 'Queue',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.calendar_today_outlined),
+                  selectedIcon: Icon(Icons.calendar_today),
+                  label: 'Visits',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.medical_services_outlined),
+                  selectedIcon: Icon(Icons.medical_services),
+                  label: 'Consult',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.schedule_outlined),
+                  selectedIcon: Icon(Icons.schedule),
+                  label: 'More',
+                ),
+              ],
+            ),
+    );
+  }
+
+  Widget _page(bool desktop) {
+    switch (selectedIndex) {
+      case 1:
+        return _QueuePage(queue: queue);
+      case 2:
+        return _AppointmentsPage(queue: queue);
+      case 3:
+        return _ConsultationPage(doctor: doctor, queue: queue);
+      case 4:
+        return _ManagementPage(
+          doctor: doctor,
+          queue: queue,
+          onOpenReports: () => setState(() => selectedIndex = 0),
+        );
+      default:
+        return _OverviewPage(
+          queue: queue,
+          doctor: doctor,
+          doctorName: widget.doctorName,
+          department: widget.department,
+          onQueue: () => setState(() => selectedIndex = 1),
+        );
     }
   }
 
-  void _openQueue() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const TodayQueueScreen(),
-      ),
-    );
-  }
-
-  void _openAddPatient() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const AddPatientScreen(),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF4F8FD),
-
-      drawer: Drawer(
-        backgroundColor: const Color(0xFFF4F8FD),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: HospitalSidebar(
-              selectedPage: HospitalSidebarPage.dashboard,
-
-              onDashboardTap: () {
-                Navigator.of(context).pop();
-              },
-
-              onTodayQueueTap: () {
-                Navigator.of(context).pop();
-                _openQueue();
-              },
-
-              onAddPatientTap: () {
-                Navigator.of(context).pop();
-                _openAddPatient();
-              },
+  void _showNotifications(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (_) => Padding(
+        padding: const EdgeInsets.all(22),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Notifications',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
             ),
-          ),
-        ),
-      ),
-
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final bool isDesktop = constraints.maxWidth >= 900;
-
-            return Row(
-              children: [
-
-                if (isDesktop)
-                  HospitalSidebar(
-                    selectedPage: HospitalSidebarPage.dashboard,
-                    onTodayQueueTap: _openQueue,
-                    onAddPatientTap: _openAddPatient,
-                  ),
-
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isDesktop ? 28 : 18,
-                      vertical: 20,
-                    ),
-                    child: Column(
-                      crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                      children: [
-                        if (!isDesktop)
-                          Row(
-                            children: [
-                              Builder(
-                                builder: (context) {
-                                  return InkWell(
-                                    onTap: () {
-                                      Scaffold.of(context)
-                                          .openDrawer();
-                                    },
-                                    borderRadius:
-                                    BorderRadius.circular(14),
-                                    child: Container(
-                                      height: 46,
-                                      width: 46,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius:
-                                        BorderRadius.circular(14),
-                                        border: Border.all(
-                                          color: const Color(
-                                            0xFFDCE6F2,
-                                          ),
-                                        ),
-                                      ),
-                                      child: const Icon(
-                                        Icons.menu_rounded,
-                                        color:
-                                        Color(0xFF16324F),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                              const SizedBox(width: 12),
-                              const Expanded(
-                                child: Text(
-                                  'Hospital Queue',
-                                  style: TextStyle(
-                                    fontSize: 19,
-                                    fontWeight: FontWeight.bold,
-                                    color:
-                                    Color(0xFF16324F),
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                height: 46,
-                                width: 46,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius:
-                                  BorderRadius.circular(14),
-                                  border: Border.all(
-                                    color:
-                                    const Color(0xFFDCE6F2),
-                                  ),
-                                ),
-                                child: const Icon(
-                                  Icons
-                                      .notifications_none_rounded,
-                                  color:
-                                  Color(0xFF536B89),
-                                ),
-                              ),
-                            ],
-                          ),
-
-                        if (!isDesktop)
-                          const SizedBox(height: 24),
-
-                        Row(
-                          crossAxisAlignment:
-                          CrossAxisAlignment.start,
-                          children: [
-                            const Expanded(
-                              child: Column(
-                                crossAxisAlignment:
-                                CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Good Morning, Doctor! 👋',
-                                    style: TextStyle(
-                                      fontSize: 27,
-                                      fontWeight:
-                                      FontWeight.bold,
-                                      color:
-                                      Color(0xFF16324F),
-                                    ),
-                                  ),
-                                  SizedBox(height: 6),
-                                  Text(
-                                    'Here’s what’s happening in your department today.',
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      color:
-                                      Color(0xFF748196),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            if (isDesktop)
-                              const _ProfileHeader(),
-                          ],
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // ================================
-                        // STATISTICS
-                        // ================================
-
-                        LayoutBuilder(
-                          builder: (context, c) {
-                            int columns;
-
-                            if (c.maxWidth >= 1200) {
-                              columns = 4;
-                            } else if (c.maxWidth >= 700) {
-                              columns = 2;
-                            } else {
-                              columns = 1;
-                            }
-
-                            final cardWidth =
-                                (c.maxWidth -
-                                    ((columns - 1) * 14)) /
-                                    columns;
-
-                            return Wrap(
-                              spacing: 14,
-                              runSpacing: 14,
-                              children: [
-                                SizedBox(
-                                  width: cardWidth,
-                                  child: _StatCard(
-                                    title:
-                                    'Total Patients Today',
-                                    value:
-                                    '${queueService.totalPatients}',
-                                    subtitle:
-                                    queueService.totalPatients ==
-                                        0
-                                        ? 'No patients yet'
-                                        : 'Patients registered today',
-                                    icon: Icons
-                                        .people_alt_rounded,
-                                    color:
-                                    const Color(0xFF6C63B5),
-                                    background:
-                                    const Color(0xFFF0EEFF),
-                                  ),
-                                ),
-
-                                SizedBox(
-                                  width: cardWidth,
-                                  child: _StatCard(
-                                    title:
-                                    'Patients in Queue',
-                                    value:
-                                    '${queueService.queueCount}',
-                                    subtitle:
-                                    queueService.queueCount ==
-                                        0
-                                        ? 'Queue is empty'
-                                        : 'Patients currently active',
-                                    icon:
-                                    Icons.groups_rounded,
-                                    color:
-                                    const Color(0xFF1976D2),
-                                    background:
-                                    const Color(0xFFEAF3FF),
-                                  ),
-                                ),
-
-                                SizedBox(
-                                  width: cardWidth,
-                                  child: const _StatCard(
-                                    title:
-                                    'Avg. Waiting Time',
-                                    value: '—',
-                                    subtitle:
-                                    'Waiting data will appear here',
-                                    icon:
-                                    Icons.access_time_rounded,
-                                    color:
-                                    Color(0xFF3A8D68),
-                                    background:
-                                    Color(0xFFEAF8F2),
-                                  ),
-                                ),
-
-                                SizedBox(
-                                  width: cardWidth,
-                                  child: _StatCard(
-                                    title:
-                                    'Completed Today',
-                                    value:
-                                    '${queueService.completedCount}',
-                                    subtitle:
-                                    queueService.completedCount ==
-                                        0
-                                        ? 'No completed patients'
-                                        : 'Patients completed today',
-                                    icon:
-                                    Icons.task_alt_rounded,
-                                    color:
-                                    const Color(0xFFE76A91),
-                                    background:
-                                    const Color(0xFFFFEEF3),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // ================================
-                        // CURRENT QUEUE + OVERVIEW
-                        // ================================
-
-                        LayoutBuilder(
-                          builder: (context, c) {
-                            if (c.maxWidth >= 1000) {
-                              return Row(
-                                crossAxisAlignment:
-                                CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    flex: 2,
-                                    child:
-                                    _CurrentQueueCard(
-                                      onTap: _openQueue,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 18),
-                                  const Expanded(
-                                    child:
-                                    _QueueOverviewCard(),
-                                  ),
-                                ],
-                              );
-                            }
-
-                            return Column(
-                              children: [
-                                _CurrentQueueCard(
-                                  onTap: _openQueue,
-                                ),
-                                const SizedBox(height: 18),
-                                const _QueueOverviewCard(),
-                              ],
-                            );
-                          },
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        LayoutBuilder(
-                          builder: (context, c) {
-                            if (c.maxWidth >= 1000) {
-                              return const Row(
-                                crossAxisAlignment:
-                                CrossAxisAlignment.start,
-                                children: [
-                                  Expanded(
-                                    child: _ScheduleCard(),
-                                  ),
-                                  SizedBox(width: 18),
-                                  Expanded(
-                                    child:
-                                    _PriorityPatientsCard(),
-                                  ),
-                                ],
-                              );
-                            }
-
-                            return const Column(
-                              children: [
-                                _ScheduleCard(),
-                                SizedBox(height: 18),
-                                _PriorityPatientsCard(),
-                              ],
-                            );
-                          },
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        const _AlertsCard(),
-
-                        const SizedBox(height: 24),
-
-                        _QuickActions(
-                          onAddPatient: _openAddPatient,
-                          onGenerateToken: _openAddPatient,
-                          onQueueTap: _openQueue,
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        const _AiAssistantCard(),
-
-                        const SizedBox(height: 22),
-
-                        const Center(
-                          child: Text(
-                            'SMART CARE • BETTER EXPERIENCE',
-                            style: TextStyle(
-                              fontSize: 10,
-                              letterSpacing: 1.3,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF9AA5B4),
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 10),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
+            const SizedBox(height: 12),
+            _notice(
+              Icons.emergency_rounded,
+              'Priority patients',
+              '${queue.priorityCount} emergency patient(s) need attention.',
+              const Color(0xFFD95757),
+            ),
+            _notice(
+              Icons.person_add_alt_1,
+              'Patient arrivals',
+              '${queue.waitingCount} patient(s) are waiting.',
+              const Color(0xFF1976D2),
+            ),
+            _notice(
+              Icons.calendar_today,
+              'Appointments',
+              'Review today\'s appointment list and cancellations.',
+              const Color(0xFF16806A),
+            ),
+          ],
         ),
       ),
     );
   }
+
+  Widget _notice(IconData icon, String title, String text, Color color) =>
+      ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: CircleAvatar(
+          backgroundColor: color.withValues(alpha: 0.12),
+          child: Icon(icon, color: color),
+        ),
+        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+        subtitle: Text(text),
+      );
 }
 
-// ============================================================
-// PROFILE HEADER
-// ============================================================
+class _DoctorSideRail extends StatelessWidget {
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
 
-class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader();
+  const _DoctorSideRail({
+    required this.selectedIndex,
+    required this.onSelected,
+  });
+
+  static const items = [
+    (Icons.dashboard_rounded, 'Dashboard'),
+    (Icons.people_rounded, 'Queue Overview'),
+    (Icons.calendar_month_rounded, 'Appointments'),
+    (Icons.medical_services_rounded, 'Consultation'),
+    (Icons.schedule_rounded, 'Availability'),
+    (Icons.bar_chart_rounded, 'Reports & Analytics'),
+    (Icons.chat_bubble_rounded, 'Messages'),
+  ];
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: 14,
-        vertical: 10,
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFFDCE6F2),
-        ),
-      ),
-      child: const Row(
-        children: [
-          CircleAvatar(
-            radius: 20,
-            backgroundColor: Color(0xFFEAF3FF),
-            child: Icon(
-              Icons.person_rounded,
-              color: Color(0xFF1976D2),
+  Widget build(BuildContext context) => Container(
+    width: 230,
+    color: const Color(0xFF16324F),
+    padding: const EdgeInsets.fromLTRB(14, 20, 14, 18),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.fromLTRB(12, 2, 12, 28),
+          child: Text(
+            'DOCTOR\nSPACE',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              height: 1.1,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.4,
             ),
           ),
-          SizedBox(width: 10),
-          Column(
-            crossAxisAlignment:
-            CrossAxisAlignment.start,
+        ),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            'WORKSPACE',
+            style: TextStyle(
+              color: Color(0xFF8BA1B8),
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.4,
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        ...List.generate(items.length, (index) {
+          final item = items[index];
+          final active = selectedIndex == (index > 3 ? 4 : index);
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: InkWell(
+              onTap: () => onSelected(index > 3 ? 4 : index),
+              borderRadius: BorderRadius.circular(13),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: active ? const Color(0xFF1976D2) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(13),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      item.$1,
+                      color: active ? Colors.white : const Color(0xFFB8C7D6),
+                      size: 19,
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      item.$2,
+                      style: TextStyle(
+                        color: active ? Colors.white : const Color(0xFFB8C7D6),
+                        fontSize: 12,
+                        fontWeight: active ? FontWeight.w800 : FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
+        const Spacer(),
+        const Divider(color: Color(0xFF36516A)),
+        const ListTile(
+          contentPadding: EdgeInsets.symmetric(horizontal: 8),
+          leading: CircleAvatar(
+            backgroundColor: Color(0xFFEAF3FF),
+            child: Icon(Icons.person, color: Color(0xFF1976D2)),
+          ),
+          title: Text(
+            'Doctor account',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          subtitle: Text(
+            'Available',
+            style: TextStyle(color: Color(0xFF8ED7C2), fontSize: 11),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class _OverviewPage extends StatelessWidget {
+  final QueueService queue;
+  final DoctorService doctor;
+  final String doctorName;
+  final String department;
+  final VoidCallback onQueue;
+
+  const _OverviewPage({
+    required this.queue,
+    required this.doctor,
+    required this.doctorName,
+    required this.department,
+    required this.onQueue,
+  });
+
+  @override
+  Widget build(BuildContext context) => ListView(
+    padding: const EdgeInsets.fromLTRB(22, 8, 22, 28),
+    children: [
+      _PageTitle(
+        title: 'Good morning, $doctorName',
+        subtitle:
+            '$department • Here is your consultation workspace for today.',
+      ),
+      const SizedBox(height: 20),
+      _StatGrid(queue: queue),
+      const SizedBox(height: 22),
+      LayoutBuilder(
+        builder: (context, constraints) => constraints.maxWidth >= 1000
+            ? Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: _QueueControl(queue: queue, onOpenQueue: onQueue),
+                  ),
+                  const SizedBox(width: 18),
+                  Expanded(child: _DonutOverview(queue: queue)),
+                ],
+              )
+            : Column(
+                children: [
+                  _QueueControl(queue: queue, onOpenQueue: onQueue),
+                  const SizedBox(height: 18),
+                  _DonutOverview(queue: queue),
+                ],
+              ),
+      ),
+      const SizedBox(height: 22),
+      LayoutBuilder(
+        builder: (context, constraints) => constraints.maxWidth >= 1000
+            ? Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: _UpcomingAppointments(queue: queue)),
+                  const SizedBox(width: 18),
+                  Expanded(child: _PriorityList(queue: queue)),
+                ],
+              )
+            : Column(
+                children: [
+                  _UpcomingAppointments(queue: queue),
+                  const SizedBox(height: 18),
+                  _PriorityList(queue: queue),
+                ],
+              ),
+      ),
+      const SizedBox(height: 22),
+      _AvailabilityCard(doctor: doctor),
+    ],
+  );
+}
+
+class _StatGrid extends StatelessWidget {
+  final QueueService queue;
+  const _StatGrid({required this.queue});
+  @override
+  Widget build(BuildContext context) => GridView.count(
+    crossAxisCount: MediaQuery.sizeOf(context).width >= 1200 ? 4 : 2,
+    shrinkWrap: true,
+    physics: const NeverScrollableScrollPhysics(),
+    crossAxisSpacing: 12,
+    mainAxisSpacing: 12,
+    childAspectRatio: 1.8,
+    children: [
+      _Metric(
+        'Today\'s appointments',
+        '${queue.totalPatients}',
+        Icons.calendar_month_rounded,
+        const Color(0xFF1976D2),
+      ),
+      _Metric(
+        'Waiting patients',
+        '${queue.waitingCount}',
+        Icons.hourglass_top_rounded,
+        const Color(0xFFFF9F43),
+      ),
+      _Metric(
+        'In consultation',
+        '${queue.consultationCount}',
+        Icons.medical_services_rounded,
+        const Color(0xFF6C63B5),
+      ),
+      _Metric(
+        'Completed',
+        '${queue.completedCount}',
+        Icons.check_circle_rounded,
+        const Color(0xFF16806A),
+      ),
+      _Metric(
+        'Emergency',
+        '${queue.priorityCount}',
+        Icons.emergency_rounded,
+        const Color(0xFFD95757),
+      ),
+      _Metric(
+        'Avg. wait',
+        '${queue.averageWaitingMinutes} min',
+        Icons.timer_outlined,
+        const Color(0xFF1976D2),
+      ),
+      _Metric(
+        'Avg. consultation',
+        '18 min',
+        Icons.speed_rounded,
+        const Color(0xFF16806A),
+      ),
+      _Metric(
+        'No shows',
+        '${queue.noShowCount}',
+        Icons.person_off_outlined,
+        const Color(0xFF718096),
+      ),
+    ],
+  );
+}
+
+class _Metric extends StatelessWidget {
+  final String label, value;
+  final IconData icon;
+  final Color color;
+  const _Metric(this.label, this.value, this.icon, this.color);
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(14),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(17),
+      border: Border.all(color: const Color(0xFFE2EAF3)),
+    ),
+    child: Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Doctor / Nurse',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
+                label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 11, color: Color(0xFF718096)),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 21,
+                  fontWeight: FontWeight.w800,
                   color: Color(0xFF16324F),
                 ),
               ),
+            ],
+          ),
+        ),
+        Icon(icon, color: color),
+      ],
+    ),
+  );
+}
+
+class _QueueControl extends StatelessWidget {
+  final QueueService queue;
+  final VoidCallback onOpenQueue;
+  const _QueueControl({required this.queue, required this.onOpenQueue});
+
+  @override
+  Widget build(BuildContext context) {
+    final active = queue.patients
+        .where((p) => p.status == 'In Consultation')
+        .toList();
+    final waiting = queue.patients.where((p) => p.status == 'Waiting').toList();
+    final current = active.isEmpty ? null : active.first;
+    return _Panel(
+      title: 'Real-time queue management',
+      action: 'Open full queue',
+      onAction: onOpenQueue,
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const CircleAvatar(
+                backgroundColor: Color(0xFFEAF3FF),
+                child: Icon(Icons.queue_rounded, color: Color(0xFF1976D2)),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  current == null
+                      ? 'No patient in consultation'
+                      : 'Currently seeing ${current.name}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    color: Color(0xFF16324F),
+                  ),
+                ),
+              ),
               Text(
-                'Department',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Color(0xFF748196),
+                '${waiting.length} waiting',
+                style: const TextStyle(color: Color(0xFF718096)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 15),
+          if (waiting.isEmpty)
+            const _EmptyLine(text: 'The waiting queue is clear.')
+          else
+            ...waiting.take(3).map((p) => _QueueRow(patient: p, queue: queue)),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: waiting.isEmpty ? null : () => _callNext(context),
+                  icon: const Icon(Icons.campaign_outlined),
+                  label: const Text('Call next'),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: current == null
+                      ? null
+                      : () => queue.completePatient(current.id),
+                  icon: const Icon(Icons.check_circle_outline),
+                  label: const Text('Complete'),
                 ),
               ),
             ],
@@ -503,973 +568,757 @@ class _ProfileHeader extends StatelessWidget {
       ),
     );
   }
-}
 
-// ============================================================
-// SIDEBAR
-// ============================================================
-
-
-
-// ============================================================
-// SIDEBAR ITEM
-// ============================================================
-
-
-// ============================================================
-// STAT CARD
-// ============================================================
-
-class _StatCard extends StatelessWidget {
-  final String title;
-  final String value;
-  final String subtitle;
-  final IconData icon;
-  final Color color;
-  final Color background;
-
-  const _StatCard({
-    required this.title,
-    required this.value,
-    required this.subtitle,
-    required this.icon,
-    required this.color,
-    required this.background,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius:
-        BorderRadius.circular(20),
-        border: Border.all(
-          color: const Color(0xFFDCE6F2),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 2,
-                  overflow:
-                  TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF536B89),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF16324F),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  maxLines: 2,
-                  overflow:
-                  TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: color,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            height: 50,
-            width: 50,
-            decoration: BoxDecoration(
-              color: background,
-              borderRadius:
-              BorderRadius.circular(15),
-            ),
-            child: Icon(
-              icon,
-              color: color,
-              size: 27,
-            ),
-          ),
-        ],
-      ),
-    );
+  void _callNext(BuildContext context) {
+    final patient = queue.callNextPatient();
+    if (patient != null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Now serving ${patient.name}.')));
+    }
   }
 }
 
-// ============================================================
-// DASHBOARD CARD
-// ============================================================
-
-class _DashboardCard extends StatelessWidget {
-  final String title;
-  final Widget child;
-
-  const _DashboardCard({
-    required this.title,
-    required this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius:
-        BorderRadius.circular(22),
-        border: Border.all(
-          color: const Color(0xFFDCE6F2),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment:
-        CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF16324F),
-            ),
-          ),
-          const SizedBox(height: 16),
-          child,
-        ],
-      ),
-    );
-  }
-}
-
-// ============================================================
-// CURRENT QUEUE
-// ============================================================
-
-class _CurrentQueueCard extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _CurrentQueueCard({
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final queue = QueueService.instance;
-
-    final activePatients = queue.patients
-        .where(
-          (p) =>
-      p.status == 'Waiting' ||
-          p.status == 'In Consultation',
-    )
-        .toList();
-
-    return _DashboardCard(
-      title: 'Current Queue',
-      child: activePatients.isEmpty
-          ? const _EmptyState(
-        icon:
-        Icons.people_outline_rounded,
-        title: 'No patients in queue',
-        subtitle:
-        'Add a patient to start managing today’s queue.',
-      )
-          : Column(
-        children: [
-          ...activePatients
-              .take(4)
-              .map(
-                (patient) =>
-                _DashboardPatientRow(
-                  patient: patient,
-                ),
-          ),
-          if (activePatients.length > 4)
-            TextButton(
-              onPressed: onTap,
-              child: Text(
-                'View all ${activePatients.length} patients',
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-// ============================================================
-// PATIENT ROW
-// ============================================================
-
-class _DashboardPatientRow
-    extends StatelessWidget {
+class _QueueRow extends StatelessWidget {
   final QueuePatient patient;
-
-  const _DashboardPatientRow({
-    required this.patient,
-  });
-
+  final QueueService queue;
+  const _QueueRow({required this.patient, required this.queue});
   @override
-  Widget build(BuildContext context) {
-    final bool highPriority =
-        patient.priority == 'High';
-
-    return Container(
-      margin:
-      const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFD),
-        borderRadius:
-        BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: [
-          Container(
-            height: 40,
-            width: 44,
-            decoration: BoxDecoration(
-              color: const Color(0xFFEAF3FF),
-              borderRadius:
-              BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: Text(
-                'T${patient.token}',
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1976D2),
-                ),
-              ),
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Row(
+      children: [
+        CircleAvatar(
+          radius: 16,
+          backgroundColor: patient.priority == 'High'
+              ? const Color(0xFFFFE7E7)
+              : const Color(0xFFEAF3FF),
+          child: Text(
+            '${patient.token}',
+            style: TextStyle(
+              color: patient.priority == 'High'
+                  ? const Color(0xFFD95757)
+                  : const Color(0xFF1976D2),
+              fontWeight: FontWeight.w800,
+              fontSize: 12,
             ),
           ),
-
-          const SizedBox(width: 10),
-
-          Expanded(
-            child: Column(
-              crossAxisAlignment:
-              CrossAxisAlignment.start,
-              children: [
-                Text(
-                  patient.name,
-                  maxLines: 1,
-                  overflow:
-                  TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF16324F),
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  patient.status,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: Color(0xFF748196),
-                  ),
-                ),
-              ],
-            ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            patient.name,
+            style: const TextStyle(fontWeight: FontWeight.w700),
           ),
-
-          if (highPriority)
-            Container(
-              padding:
-              const EdgeInsets.symmetric(
-                horizontal: 7,
-                vertical: 4,
-              ),
-              decoration: BoxDecoration(
-                color:
-                const Color(0xFFFFEEF3),
-                borderRadius:
-                BorderRadius.circular(7),
-              ),
-              child: const Text(
-                'HIGH',
-                style: TextStyle(
-                  fontSize: 8,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFFE76A91),
-                ),
-              ),
+        ),
+        Text(
+          patient.time,
+          style: const TextStyle(color: Color(0xFF718096), fontSize: 11),
+        ),
+        PopupMenuButton<String>(
+          onSelected: (value) => queue.updateStatus(patient.id, value),
+          itemBuilder: (_) => const [
+            PopupMenuItem(
+              value: 'In Consultation',
+              child: Text('Mark in consultation'),
             ),
-        ],
-      ),
-    );
-  }
+            PopupMenuItem(value: 'Completed', child: Text('Mark completed')),
+            PopupMenuItem(value: 'No Show', child: Text('Skip patient')),
+          ],
+          child: const Icon(Icons.more_horiz, color: Color(0xFF718096)),
+        ),
+      ],
+    ),
+  );
 }
 
-// ============================================================
-// QUEUE OVERVIEW + DONUT CHART
-// ============================================================
-
-class _QueueOverviewCard
-    extends StatelessWidget {
-  const _QueueOverviewCard();
-
+class _DonutOverview extends StatelessWidget {
+  final QueueService queue;
+  const _DonutOverview({required this.queue});
   @override
   Widget build(BuildContext context) {
-    final queue = QueueService.instance;
-
-    final int total =
-        queue.waitingCount +
-            queue.consultationCount +
-            queue.completedCount +
-            queue.noShowCount;
-
-    return _DashboardCard(
-      title: 'Queue Overview',
-      child: Column(
+    final total = queue.totalPatients == 0 ? 1 : queue.totalPatients;
+    return _Panel(
+      title: 'Queue overview',
+      child: Row(
         children: [
           SizedBox(
-            height: 190,
-            child: total == 0
-                ? const _EmptyChart()
-                : Stack(
+            height: 180,
+            width: 180,
+            child: Stack(
               alignment: Alignment.center,
               children: [
                 PieChart(
                   PieChartData(
-                    centerSpaceRadius: 58,
+                    centerSpaceRadius: 48,
                     sectionsSpace: 3,
-                    borderData:
-                    FlBorderData(
-                      show: false,
-                    ),
                     sections: [
-                      PieChartSectionData(
-                        value: queue
-                            .waitingCount
-                            .toDouble(),
-                        color:
-                        const Color(
-                          0xFF8B6FE8,
-                        ),
-                        radius: 52,
-                        showTitle: false,
+                      _section(
+                        queue.waitingCount,
+                        total,
+                        const Color(0xFFFF9F43),
                       ),
-                      PieChartSectionData(
-                        value: queue
-                            .consultationCount
-                            .toDouble(),
-                        color:
-                        const Color(
-                          0xFF1976D2,
-                        ),
-                        radius: 52,
-                        showTitle: false,
+                      _section(
+                        queue.consultationCount,
+                        total,
+                        const Color(0xFF6C63B5),
                       ),
-                      PieChartSectionData(
-                        value: queue
-                            .completedCount
-                            .toDouble(),
-                        color:
-                        const Color(
-                          0xFF3A8D68,
-                        ),
-                        radius: 52,
-                        showTitle: false,
+                      _section(
+                        queue.completedCount,
+                        total,
+                        const Color(0xFF16806A),
                       ),
-                      PieChartSectionData(
-                        value: queue
-                            .noShowCount
-                            .toDouble(),
-                        color:
-                        const Color(
-                          0xFFE76A91,
-                        ),
-                        radius: 52,
-                        showTitle: false,
+                      _section(
+                        queue.noShowCount,
+                        total,
+                        const Color(0xFFD95757),
                       ),
                     ],
                   ),
                 ),
-
                 Column(
                   children: [
                     Text(
-                      '$total',
-                      style:
-                      const TextStyle(
+                      '${queue.totalPatients}',
+                      style: const TextStyle(
                         fontSize: 25,
-                        fontWeight:
-                        FontWeight.bold,
-                        color:
-                        Color(0xFF16324F),
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF16324F),
                       ),
                     ),
                     const Text(
-                      'Total',
-                      style:
-                      TextStyle(
-                        fontSize: 10,
-                        color:
-                        Color(0xFF748196),
-                      ),
+                      'Patients',
+                      style: TextStyle(color: Color(0xFF718096), fontSize: 11),
                     ),
                   ],
                 ),
               ],
             ),
           ),
-
-          const SizedBox(height: 10),
-
-          _ChartLegend(
-            title: 'Waiting',
-            value: queue.waitingCount,
-            color:
-            const Color(0xFF8B6FE8),
-          ),
-
-          _ChartLegend(
-            title: 'In Consultation',
-            value: queue.consultationCount,
-            color:
-            const Color(0xFF1976D2),
-          ),
-
-          _ChartLegend(
-            title: 'Completed',
-            value: queue.completedCount,
-            color:
-            const Color(0xFF3A8D68),
-          ),
-
-          _ChartLegend(
-            title: 'No Show',
-            value: queue.noShowCount,
-            color:
-            const Color(0xFFE76A91),
+          const SizedBox(width: 18),
+          Expanded(
+            child: Column(
+              children: [
+                _Legend('Waiting', queue.waitingCount, const Color(0xFFFF9F43)),
+                _Legend(
+                  'In Consultation',
+                  queue.consultationCount,
+                  const Color(0xFF6C63B5),
+                ),
+                _Legend(
+                  'Completed',
+                  queue.completedCount,
+                  const Color(0xFF16806A),
+                ),
+                _Legend('No Show', queue.noShowCount, const Color(0xFFD95757)),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
+
+  PieChartSectionData _section(int value, int total, Color color) =>
+      PieChartSectionData(
+        value: value == 0 ? 0.01 : value.toDouble(),
+        color: color,
+        radius: 22,
+        showTitle: false,
+      );
 }
 
-// ============================================================
-// EMPTY CHART
-// ============================================================
+class _Legend extends StatelessWidget {
+  final String label;
+  final int value;
+  final Color color;
+  const _Legend(this.label, this.value, this.color);
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Row(
+      children: [
+        Container(
+          height: 10,
+          width: 10,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 12, color: Color(0xFF536B89)),
+          ),
+        ),
+        Text(
+          '$value',
+          style: const TextStyle(
+            fontWeight: FontWeight.w800,
+            color: Color(0xFF16324F),
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
-class _EmptyChart extends StatelessWidget {
-  const _EmptyChart();
-
+class _UpcomingAppointments extends StatelessWidget {
+  final QueueService queue;
+  const _UpcomingAppointments({required this.queue});
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
+    return _Panel(
+      title: 'Upcoming appointments',
+      action: 'View all',
+      onAction: () {},
+      child: queue.patients.isEmpty
+          ? const _EmptyLine(text: 'No upcoming appointments.')
+          : Column(
+              children: queue.patients.take(4).map((p) {
+                return ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: CircleAvatar(
+                    backgroundColor: const Color(0xFFEAF3FF),
+                    child: Text('${p.token}'),
+                  ),
+                  title: Text(
+                    p.name,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  subtitle: Text('${p.reason} • ${p.time}'),
+                  trailing: _StatusBadge(p.status),
+                );
+              }).toList(),
+            ),
+    );
+  }
+}
+
+class _PriorityList extends StatelessWidget {
+  final QueueService queue;
+  const _PriorityList({required this.queue});
+  @override
+  Widget build(BuildContext context) {
+    final patients = queue.patients
+        .where((p) => p.priority == 'High' && p.status != 'Completed')
+        .toList();
+    return _Panel(
+      title: 'Emergency / priority patients',
+      child: patients.isEmpty
+          ? const _EmptyLine(text: 'No priority patients right now.')
+          : Column(
+              children: patients
+                  .map(
+                    (p) => ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(
+                        Icons.emergency_rounded,
+                        color: Color(0xFFD95757),
+                      ),
+                      title: Text(
+                        p.name,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      subtitle: Text('Token ${p.token} • ${p.reason}'),
+                      trailing: const _StatusBadge('Priority'),
+                    ),
+                  )
+                  .toList(),
+            ),
+    );
+  }
+}
+
+class _AvailabilityCard extends StatelessWidget {
+  final DoctorService doctor;
+  const _AvailabilityCard({required this.doctor});
+  @override
+  Widget build(BuildContext context) => _Panel(
+    title: 'Doctor availability',
+    action: doctor.availability,
+    onAction: () => doctor.setAvailability(
+      doctor.availability == 'Available' ? 'Busy' : 'Available',
+    ),
+    child: Wrap(
+      spacing: 10,
+      runSpacing: 10,
       children: [
-        SizedBox(
-          height: 145,
-          width: 145,
-          child: CircularProgressIndicator(
-            value: 1,
-            strokeWidth: 25,
-            backgroundColor:
-            const Color(0xFFEAF0F7),
-            valueColor:
-            const AlwaysStoppedAnimation(
-              Color(0xFFEAF0F7),
+        const _InfoChip('Working days', 'Mon - Fri', Icons.date_range_outlined),
+        _InfoChip(
+          'Consultation',
+          doctor.consultationHours,
+          Icons.schedule_outlined,
+        ),
+        _InfoChip('Break', doctor.breakHours, Icons.free_breakfast_outlined),
+        _InfoChip('Status', doctor.availability, Icons.circle),
+      ],
+    ),
+  );
+}
+
+class _QueuePage extends StatelessWidget {
+  final QueueService queue;
+  const _QueuePage({required this.queue});
+  @override
+  Widget build(BuildContext context) => ListView(
+    padding: const EdgeInsets.all(22),
+    children: [
+      const _PageTitle(
+        title: 'Queue Overview',
+        subtitle: 'Manage every patient in real time.',
+      ),
+      const SizedBox(height: 18),
+      _QueueControl(queue: queue, onOpenQueue: () {}),
+      const SizedBox(height: 18),
+      ...queue.patients.map(
+        (p) => _DetailedPatientCard(patient: p, queue: queue),
+      ),
+    ],
+  );
+}
+
+class _DetailedPatientCard extends StatelessWidget {
+  final QueuePatient patient;
+  final QueueService queue;
+  const _DetailedPatientCard({required this.patient, required this.queue});
+  @override
+  Widget build(BuildContext context) => Card(
+    color: Colors.white,
+    child: ListTile(
+      leading: CircleAvatar(child: Text('${patient.token}')),
+      title: Text(
+        patient.name,
+        style: const TextStyle(fontWeight: FontWeight.w700),
+      ),
+      subtitle: Text('${patient.reason} • Appointment ${patient.time}'),
+      trailing: Wrap(
+        spacing: 4,
+        children: [
+          _StatusBadge(patient.status),
+          IconButton(
+            tooltip: 'Skip',
+            onPressed: () => queue.skipPatient(patient.id),
+            icon: const Icon(Icons.skip_next),
+          ),
+          IconButton(
+            tooltip: 'Recall',
+            onPressed: () => queue.recallPatient(patient.id),
+            icon: const Icon(Icons.replay),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+class _AppointmentsPage extends StatelessWidget {
+  final QueueService queue;
+  const _AppointmentsPage({required this.queue});
+  @override
+  Widget build(BuildContext context) => ListView(
+    padding: const EdgeInsets.all(22),
+    children: [
+      const _PageTitle(
+        title: 'Appointments',
+        subtitle: 'Today\'s and upcoming patient appointments.',
+      ),
+      const SizedBox(height: 18),
+      if (queue.patients.isEmpty)
+        const _EmptyLine(text: 'No appointments yet.')
+      else
+        ...queue.patients.map(
+          (p) => Card(
+            color: Colors.white,
+            child: ListTile(
+              title: Text(
+                p.name,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              subtitle: Text('${p.time} • ${p.reason}'),
+              trailing: Wrap(
+                children: [
+                  TextButton(onPressed: () {}, child: const Text('Accept')),
+                  TextButton(onPressed: () {}, child: const Text('Reschedule')),
+                ],
+              ),
             ),
           ),
         ),
-        const Column(
-          mainAxisSize: MainAxisSize.min,
+    ],
+  );
+}
+
+class _ConsultationPage extends StatefulWidget {
+  final DoctorService doctor;
+  final QueueService queue;
+  const _ConsultationPage({required this.doctor, required this.queue});
+  @override
+  State<_ConsultationPage> createState() => _ConsultationPageState();
+}
+
+class _ConsultationPageState extends State<_ConsultationPage> {
+  final symptoms = TextEditingController();
+  final diagnosis = TextEditingController();
+  final notes = TextEditingController();
+  final advice = TextEditingController();
+  final medicine = TextEditingController();
+  final dosage = TextEditingController();
+  final frequency = TextEditingController();
+  final duration = TextEditingController();
+  @override
+  void dispose() {
+    for (final c in [
+      symptoms,
+      diagnosis,
+      notes,
+      advice,
+      medicine,
+      dosage,
+      frequency,
+      duration,
+    ]) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => ListView(
+    padding: const EdgeInsets.all(22),
+    children: [
+      const _PageTitle(
+        title: 'Consultation workspace',
+        subtitle: 'Record clinical notes and generate a prescription.',
+      ),
+      const SizedBox(height: 18),
+      _FormPanel(
+        title: 'Consultation notes',
+        fields: [
+          (_input('Symptoms', symptoms), 3),
+          (_input('Diagnosis', diagnosis), 2),
+          (_input('Clinical notes', notes), 3),
+          (_input('Treatment and advice', advice), 3),
+        ],
+        action: ElevatedButton.icon(
+          onPressed: () {
+            widget.doctor.saveConsultation(
+              symptoms: symptoms.text,
+              diagnosis: diagnosis.text,
+              notes: notes.text,
+              advice: advice.text,
+            );
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Consultation saved.')),
+            );
+          },
+          icon: const Icon(Icons.save_outlined),
+          label: const Text('Save consultation'),
+        ),
+      ),
+      const SizedBox(height: 18),
+      _FormPanel(
+        title: 'Prescription',
+        fields: [
+          (_input('Medicine name', medicine), 1),
+          (_input('Dosage', dosage), 1),
+          (_input('Frequency', frequency), 1),
+          (_input('Duration', duration), 1),
+        ],
+        action: ElevatedButton.icon(
+          onPressed: () {
+            widget.doctor.savePrescription(
+              medicineName: medicine.text,
+              dosage: dosage.text,
+              frequency: frequency.text,
+              duration: duration.text,
+              instructions: advice.text,
+            );
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Prescription saved.')),
+            );
+          },
+          icon: const Icon(Icons.receipt_long_outlined),
+          label: const Text('Generate prescription'),
+        ),
+      ),
+    ],
+  );
+  TextField _input(String hint, TextEditingController controller) => TextField(
+    controller: controller,
+    maxLines: 3,
+    decoration: InputDecoration(
+      labelText: hint,
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+    ),
+  );
+}
+
+class _ManagementPage extends StatelessWidget {
+  final DoctorService doctor;
+  final QueueService queue;
+  final VoidCallback onOpenReports;
+
+  const _ManagementPage({
+    required this.doctor,
+    required this.queue,
+    required this.onOpenReports,
+  });
+
+  @override
+  Widget build(BuildContext context) => ListView(
+    padding: const EdgeInsets.all(22),
+    children: [
+      const _PageTitle(
+        title: 'Availability & reports',
+        subtitle: 'Manage your schedule and review performance.',
+      ),
+      const SizedBox(height: 18),
+      _AvailabilityCard(doctor: doctor),
+      const SizedBox(height: 18),
+      _Panel(
+        title: 'Reports & analytics',
+        child: Column(
           children: [
-            Text(
-              '0',
-              style: TextStyle(
-                fontSize: 25,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF16324F),
+            _ReportLine('Daily patients', queue.totalPatients),
+            _ReportLine('Completed consultations', queue.completedCount),
+            _ReportLine('Cancelled / no-show', queue.noShowCount),
+            _ReportLine(
+              'Average waiting time',
+              queue.averageWaitingMinutes,
+              suffix: ' min',
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              onPressed: onOpenReports,
+              icon: const Icon(Icons.bar_chart),
+              label: const Text('Open dashboard analytics'),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 18),
+      _Panel(
+        title: 'Patient communication',
+        child: Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: () => _message(context),
+                icon: const Icon(Icons.chat_outlined),
+                label: const Text('Message patient'),
               ),
             ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: () => _message(context),
+                icon: const Icon(Icons.send_outlined),
+                label: const Text('Send instructions'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
+
+  void _message(BuildContext context) =>
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Messaging is ready for backend integration.'),
+        ),
+      );
+}
+
+class _PageTitle extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  const _PageTitle({required this.title, required this.subtitle});
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        title,
+        style: const TextStyle(
+          fontSize: 26,
+          fontWeight: FontWeight.w800,
+          color: Color(0xFF16324F),
+        ),
+      ),
+      const SizedBox(height: 6),
+      Text(subtitle, style: const TextStyle(color: Color(0xFF718096))),
+    ],
+  );
+}
+
+class _Panel extends StatelessWidget {
+  final String title;
+  final String? action;
+  final VoidCallback? onAction;
+  final Widget child;
+  const _Panel({
+    required this.title,
+    this.action,
+    this.onAction,
+    required this.child,
+  });
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(18),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: const Color(0xFFE2EAF3)),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF16324F),
+                ),
+              ),
+            ),
+            if (action != null)
+              TextButton(onPressed: onAction, child: Text(action!)),
+          ],
+        ),
+        const SizedBox(height: 12),
+        child,
+      ],
+    ),
+  );
+}
+
+class _EmptyLine extends StatelessWidget {
+  final String text;
+  const _EmptyLine({required this.text});
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 14),
+    child: Text(text, style: const TextStyle(color: Color(0xFF718096))),
+  );
+}
+
+class _StatusBadge extends StatelessWidget {
+  final String status;
+  const _StatusBadge(this.status);
+  @override
+  Widget build(BuildContext context) {
+    final color = status == 'Completed'
+        ? const Color(0xFF16806A)
+        : status == 'In Consultation'
+        ? const Color(0xFF6C63B5)
+        : status == 'No Show'
+        ? const Color(0xFFD95757)
+        : const Color(0xFFFF9F43);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Text(
+        status,
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  final String label, value;
+  final IconData icon;
+  const _InfoChip(this.label, this.value, this.icon);
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: const Color(0xFFF4F8FD),
+      borderRadius: BorderRadius.circular(13),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 18, color: const Color(0xFF1976D2)),
+        const SizedBox(width: 8),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             Text(
-              'Patients',
-              style: TextStyle(
-                fontSize: 10,
-                color: Color(0xFF748196),
+              label,
+              style: const TextStyle(fontSize: 10, color: Color(0xFF718096)),
+            ),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF16324F),
               ),
             ),
           ],
         ),
       ],
-    );
-  }
+    ),
+  );
 }
 
-// ============================================================
-// CHART LEGEND
-// ============================================================
-
-class _ChartLegend
-    extends StatelessWidget {
-  final String title;
+class _ReportLine extends StatelessWidget {
+  final String label;
   final int value;
-  final Color color;
-
-  const _ChartLegend({
-    required this.title,
-    required this.value,
-    required this.color,
-  });
-
+  final String suffix;
+  const _ReportLine(this.label, this.value, {this.suffix = ''});
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding:
-      const EdgeInsets.symmetric(
-        vertical: 5,
+  Widget build(BuildContext context) => ListTile(
+    contentPadding: EdgeInsets.zero,
+    title: Text(label),
+    trailing: Text(
+      '$value$suffix',
+      style: const TextStyle(
+        fontSize: 17,
+        fontWeight: FontWeight.w800,
+        color: Color(0xFF16324F),
       ),
-      child: Row(
-        children: [
-          Container(
-            height: 9,
-            width: 9,
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 9),
-          Expanded(
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 11,
-                color: Color(0xFF536B89),
-              ),
-            ),
-          ),
-          Text(
-            '$value',
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF16324F),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+    ),
+  );
 }
 
-// ============================================================
-// SCHEDULE
-// ============================================================
-
-class _ScheduleCard
-    extends StatelessWidget {
-  const _ScheduleCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return const _DashboardCard(
-      title: "Today's Schedule",
-      child: _EmptyState(
-        icon:
-        Icons.calendar_month_outlined,
-        title: 'No schedule available',
-        subtitle:
-        'Appointments and working hours will appear here.',
-      ),
-    );
-  }
-}
-
-// ============================================================
-// PRIORITY PATIENTS
-// ============================================================
-
-class _PriorityPatientsCard
-    extends StatelessWidget {
-  const _PriorityPatientsCard();
-
-  @override
-  Widget build(BuildContext context) {
-    final queue = QueueService.instance;
-
-    final priorityPatients = queue.patients
-        .where(
-          (p) =>
-      p.priority == 'High' &&
-          p.status != 'Completed' &&
-          p.status != 'No Show',
-    )
-        .toList();
-
-    return _DashboardCard(
-      title: 'Priority Patients',
-      child: priorityPatients.isEmpty
-          ? const _EmptyState(
-        icon:
-        Icons.priority_high_rounded,
-        title: 'No priority patients',
-        subtitle:
-        'High priority patients will appear here.',
-      )
-          : Column(
-        children: priorityPatients
-            .take(4)
-            .map(
-              (patient) =>
-              _DashboardPatientRow(
-                patient: patient,
-              ),
-        )
-            .toList(),
-      ),
-    );
-  }
-}
-
-// ============================================================
-// ALERTS
-// ============================================================
-
-class _AlertsCard
-    extends StatelessWidget {
-  const _AlertsCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return const _DashboardCard(
-      title: 'Alerts & Notifications',
-      child: _EmptyState(
-        icon:
-        Icons.notifications_none_rounded,
-        title: 'No new alerts',
-        subtitle:
-        'Queue and appointment notifications will appear here.',
-      ),
-    );
-  }
-}
-
-// ============================================================
-// QUICK ACTIONS
-// ============================================================
-
-class _QuickActions
-    extends StatelessWidget {
-  final VoidCallback onAddPatient;
-  final VoidCallback onGenerateToken;
-  final VoidCallback onQueueTap;
-
-  const _QuickActions({
-    required this.onAddPatient,
-    required this.onGenerateToken,
-    required this.onQueueTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return _DashboardCard(
-      title: 'Quick Actions',
-      child: LayoutBuilder(
-        builder: (context, c) {
-          final bool wide = c.maxWidth >= 600;
-
-          final double actionWidth = wide
-              ? (c.maxWidth - 36) / 4
-              : (c.maxWidth - 12) / 2;
-
-          return Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-            _Action(
-            width: actionWidth,
-            icon:
-            Icons.person_add_alt_1_rounded,
-            title: 'Add Patient',
-            color:
-            const Color(0xFF6C63B5),
-            background:
-            const Color(0xFFF0EEFF),
-            onTap: onAddPatient,
-          ),
-
-          _Action(
-          width: actionWidth,
-          icon:
-          Icons.confirmation_number_rounded,
-          title: 'Generate Token',
-          color:
-          const Color(0xFF1976D2),
-          background:
-          const Color(0xFFEAF3FF),
-          onTap: onGenerateToken,
-          ),
-
-          _Action(
-          width: actionWidth,
-          icon: Icons.groups_rounded,
-            title: "Today's Queue",
-          color:
-          const Color(0xFF3A8D68),
-          background:
-          const Color(0xFFEAF8F2),
-          onTap: onQueueTap,
-          ),
-
-          _Action(
-          width: actionWidth,
-          icon:
-          Icons.print_rounded,
-          title: 'Print Reports',
-          color:
-          const Color(0xFFE76A91),
-          background:
-          const Color(0xFFFFEEF3),
-          onTap: () {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(
-          const SnackBar(
-          content: Text(
-          'Reports will be connected later.',
-          ),
-          ),
-          );
-          },
-          ),
-          ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-// ============================================================
-// ACTION
-// ============================================================
-
-class _Action extends StatelessWidget {
-  final double width;
-  final IconData icon;
+class _FormPanel extends StatelessWidget {
   final String title;
-  final Color color;
-  final Color background;
-  final VoidCallback? onTap;
-
-  const _Action({
-    required this.width,
-    required this.icon,
+  final List<(TextField, int)> fields;
+  final Widget action;
+  const _FormPanel({
     required this.title,
-    required this.color,
-    required this.background,
-    this.onTap,
+    required this.fields,
+    required this.action,
   });
-
   @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius:
-      BorderRadius.circular(16),
-      child: Container(
-        width: width,
-        padding:
-        const EdgeInsets.symmetric(
-          vertical: 16,
-        ),
-        decoration: BoxDecoration(
-          color: background,
-          borderRadius:
-          BorderRadius.circular(16),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              color: color,
-              size: 28,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ============================================================
-// EMPTY STATE
-// ============================================================
-
-class _EmptyState
-    extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-
-  const _EmptyState({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding:
-        const EdgeInsets.symmetric(
-          vertical: 20,
-        ),
-        child: Column(
-          children: [
-            Container(
-              height: 52,
-              width: 52,
-              decoration: BoxDecoration(
-                color:
-                const Color(0xFFEAF3FF),
-                borderRadius:
-                BorderRadius.circular(16),
-              ),
-              child: Icon(
-                icon,
-                color:
-                const Color(0xFF1976D2),
-                size: 27,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF16324F),
-              ),
-            ),
-            const SizedBox(height: 5),
-            Text(
-              subtitle,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 11,
-                color: Color(0xFF748196),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ============================================================
-// AI ASSISTANT
-// ============================================================
-
-class _AiAssistantCard
-    extends StatelessWidget {
-  const _AiAssistantCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(
-          const SnackBar(
-            content: Text(
-              'AI Assistant will be connected here.',
-            ),
-          ),
-        );
-      },
-      borderRadius:
-      BorderRadius.circular(22),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(18),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius:
-          BorderRadius.circular(22),
-          border: Border.all(
-            color: const Color(0xFFDCE6F2),
+  Widget build(BuildContext context) => _Panel(
+    title: title,
+    child: Column(
+      children: [
+        ...fields.map(
+          (field) => Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: field.$1,
           ),
         ),
-        child: const Row(
-          children: [
-            CircleAvatar(
-              radius: 26,
-              backgroundColor:
-              Color(0xFFEAF3FF),
-              child: Icon(
-                Icons.auto_awesome_rounded,
-                color: Color(0xFF1976D2),
-              ),
-            ),
-            SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment:
-                CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'AI Assistant',
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF16324F),
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'Your hospital AI assistant will help manage queues and patient information.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF748196),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 17,
-              color: Color(0xFF9AA8BA),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+        Align(alignment: Alignment.centerRight, child: action),
+      ],
+    ),
+  );
 }
