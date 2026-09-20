@@ -1,8 +1,11 @@
+import datetime
 import re
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.db import transaction
 from django.db.models import Max
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework import generics, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -47,6 +50,43 @@ class LoginView(APIView):
         return Response({'access': str(tokens.access_token), 'refresh': str(tokens), 'patient': PatientProfileSerializer(user.patient_profile).data})
 
 
+class GoogleLoginView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email', '').strip().lower()
+        name = request.data.get('name', '').strip()
+        google_id = request.data.get('google_id', '').strip()
+
+        if not email or '@' not in email:
+            return Response({'detail': 'A valid email address is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.filter(email=email).first() or User.objects.filter(username=email).first()
+        if not user:
+            first_name = name or email.split('@')[0].replace('.', ' ').title()
+            user = User.objects.create_user(
+                username=email,
+                email=email,
+                first_name=first_name,
+            )
+            user.set_unusable_password()
+            user.save()
+
+        profile = getattr(user, 'patient_profile', None) or PatientProfile.objects.filter(user=user).first()
+        if not profile:
+            profile = PatientProfile.objects.create(
+                user=user,
+                mobile=request.data.get('mobile', ''),
+            )
+
+        tokens = RefreshToken.for_user(user)
+        return Response({
+            'access': str(tokens.access_token),
+            'refresh': str(tokens),
+            'patient': PatientProfileSerializer(profile).data
+        })
+
+
 class MeView(generics.RetrieveUpdateAPIView):
     serializer_class = PatientProfileSerializer
 
@@ -76,23 +116,125 @@ class AppointmentViewSet(viewsets.ModelViewSet):
     serializer_class = AppointmentSerializer
     http_method_names = ['get', 'post', 'patch', 'head', 'options']
 
+    def get_permissions(self):
+        if self.action in ['call', 'start_consultation', 'complete_consultation', 'check_in', 'no_show', 'cancel', 'reschedule']:
+            return [permissions.AllowAny()]
+        if self.request.query_params.get('for_staff') in ['1', 'true']:
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
+
     def get_queryset(self):
-        return Appointment.objects.filter(patient=self.request.user).select_related('doctor__user', 'doctor__department')
+        queryset = Appointment.objects.all().select_related('patient', 'doctor__user', 'doctor__department')
+        user = self.request.user
+        is_staff_req = self.request.query_params.get('for_staff') == 'true' or not (user.is_authenticated and hasattr(user, 'patient_profile'))
+        if user.is_authenticated and hasattr(user, 'patient_profile') and not is_staff_req:
+            queryset = queryset.filter(patient=user)
+
+        doctor_id = self.request.query_params.get('doctor')
+        if doctor_id:
+            queryset = queryset.filter(doctor_id=doctor_id)
+
+        department_id = self.request.query_params.get('department')
+        if department_id:
+            queryset = queryset.filter(doctor__department_id=department_id)
+
+        date_param = self.request.query_params.get('date')
+        if date_param:
+            queryset = queryset.filter(appointment_date=date_param)
+
+        status_param = self.request.query_params.get('status')
+        if status_param:
+            queryset = queryset.filter(status=status_param)
+
+        return queryset
 
     @transaction.atomic
     def perform_create(self, serializer):
         doctor = serializer.validated_data['doctor']
         date = serializer.validated_data['appointment_date']
+        priority = self.request.data.get('priority', 'Normal')
         last_token = Appointment.objects.filter(doctor=doctor, appointment_date=date).aggregate(max_token=Max('queue_token'))['max_token'] or 0
-        appointment = serializer.save(patient=self.request.user, queue_token=last_token + 1, estimated_wait_minutes=(last_token + 1) * 15, status='upcoming')
+        waiting_count = Appointment.objects.filter(doctor=doctor, appointment_date=date, status__in=['waiting', 'checked_in', 'calling']).count()
+        appointment = serializer.save(
+            patient=self.request.user,
+            queue_token=last_token + 1,
+            estimated_wait_minutes=max(10, (waiting_count + 1) * 12),
+            priority=priority,
+            status='upcoming',
+        )
         Notification.objects.create(patient=self.request.user, title='Appointment confirmed', message=f'Queue token #{appointment.queue_token} is confirmed.')
+
+    @action(detail=True, methods=['post'])
+    def call(self, request, pk=None):
+        appointment = self.get_object()
+        appointment.status = 'calling'
+        appointment.save(update_fields=['status', 'updated_at'])
+        if appointment.patient:
+            Notification.objects.create(
+                patient=appointment.patient,
+                title=f'Token #{appointment.queue_token} Called',
+                message=f'Token #{appointment.queue_token}, please proceed to consultation room Dr. {appointment.doctor.user.get_full_name()}.'
+            )
+        return Response(AppointmentSerializer(appointment).data)
+
+    @action(detail=True, methods=['post'])
+    def start_consultation(self, request, pk=None):
+        appointment = self.get_object()
+        appointment.status = 'in_consultation'
+        appointment.save(update_fields=['status', 'updated_at'])
+        return Response(AppointmentSerializer(appointment).data)
+
+    @action(detail=True, methods=['post'])
+    def complete_consultation(self, request, pk=None):
+        appointment = self.get_object()
+        appointment.diagnosis = request.data.get('diagnosis', appointment.diagnosis)
+        appointment.clinical_notes = request.data.get('clinical_notes', appointment.clinical_notes)
+        appointment.prescription = request.data.get('prescription', appointment.prescription)
+        appointment.treatment_advice = request.data.get('treatment_advice', appointment.treatment_advice)
+        follow_up = request.data.get('follow_up_date')
+        if follow_up:
+            try:
+                appointment.follow_up_date = follow_up
+            except Exception:
+                pass
+        appointment.status = 'completed'
+        appointment.consultation_completed_at = timezone.now()
+        appointment.save()
+        if appointment.patient:
+            Notification.objects.create(
+                patient=appointment.patient,
+                title='Consultation Completed',
+                message=f'Your consultation with {appointment.doctor} is complete. Your prescription is ready.'
+            )
+        return Response(AppointmentSerializer(appointment).data)
+
+    @action(detail=True, methods=['post'])
+    def check_in(self, request, pk=None):
+        appointment = self.get_object()
+        appointment.status = 'waiting'
+        appointment.save(update_fields=['status', 'updated_at'])
+        if appointment.patient:
+            Notification.objects.create(
+                patient=appointment.patient,
+                title='Checked-in to Queue',
+                message=f'You are checked in for Token #{appointment.queue_token}. Current status: Waiting.'
+            )
+        return Response(AppointmentSerializer(appointment).data)
+
+    @action(detail=True, methods=['post'])
+    def no_show(self, request, pk=None):
+        appointment = self.get_object()
+        appointment.status = 'no_show'
+        appointment.save(update_fields=['status', 'updated_at'])
+        return Response(AppointmentSerializer(appointment).data)
 
     @action(detail=True, methods=['post'])
     def cancel(self, request, pk=None):
         appointment = self.get_object()
         appointment.status = 'cancelled'
         appointment.save(update_fields=['status', 'updated_at'])
-        Notification.objects.create(patient=request.user, title='Appointment cancelled', message=f'Appointment #{appointment.queue_token} was cancelled.')
+        if appointment.patient:
+            Notification.objects.create(patient=appointment.patient, title='Appointment cancelled', message=f'Appointment #{appointment.queue_token} was cancelled.')
         return Response(AppointmentSerializer(appointment).data)
 
     @action(detail=True, methods=['post'])
@@ -102,8 +244,203 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         appointment.appointment_time = request.data.get('appointment_time', appointment.appointment_time)
         appointment.status = 'upcoming'
         appointment.save()
-        Notification.objects.create(patient=request.user, title='Appointment rescheduled', message=f'Appointment #{appointment.queue_token} was rescheduled.')
+        if appointment.patient:
+            Notification.objects.create(patient=appointment.patient, title='Appointment rescheduled', message=f'Appointment #{appointment.queue_token} was rescheduled.')
         return Response(AppointmentSerializer(appointment).data)
+
+
+class StaffQueueView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        date_str = request.query_params.get('date')
+        if date_str:
+            target_date = date_str
+        else:
+            target_date = datetime.date.today()
+
+        queryset = Appointment.objects.filter(appointment_date=target_date).select_related('patient', 'doctor__user', 'doctor__department')
+        doctor_id = request.query_params.get('doctor_id')
+        if doctor_id:
+            queryset = queryset.filter(doctor_id=doctor_id)
+        dept_id = request.query_params.get('department_id')
+        if dept_id:
+            queryset = queryset.filter(doctor__department_id=dept_id)
+
+        serializer = AppointmentSerializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @transaction.atomic
+    def post(self, request):
+        name = (request.data.get('patient_name') or request.data.get('name') or '').strip()
+        mobile = (request.data.get('patient_mobile') or request.data.get('mobile') or '').strip()
+        email = (request.data.get('patient_email') or request.data.get('email') or '').strip().lower()
+        gender = request.data.get('patient_gender') or request.data.get('gender') or 'Other'
+        age = request.data.get('patient_age') or request.data.get('age')
+        address = (request.data.get('patient_address') or request.data.get('address') or '').strip()
+        department_id = request.data.get('department_id') or request.data.get('department')
+        doctor_id = request.data.get('doctor_id') or request.data.get('doctor')
+        priority = request.data.get('priority', 'Normal')
+        reason = request.data.get('reason', '')
+        time_str = request.data.get('appointment_time')
+
+        if not name or not mobile or not doctor_id:
+            return Response({'detail': 'Patient name, mobile, and doctor are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = None
+        if email:
+            user = User.objects.filter(email=email).first() or User.objects.filter(username=email).first()
+
+        if not user:
+            profile_match = PatientProfile.objects.filter(mobile=mobile).first()
+            if profile_match:
+                user = profile_match.user
+            else:
+                uname = email if email else f"patient_{mobile}_{int(timezone.now().timestamp())}"
+                uemail = email if email else f"{mobile}@careflow.local"
+                user = User.objects.create_user(
+                    username=uname,
+                    email=uemail,
+                    first_name=name,
+                )
+                user.set_unusable_password()
+                user.save()
+
+        dob = None
+        if age:
+            try:
+                age_int = int(age)
+                dob = datetime.date.today() - datetime.timedelta(days=age_int * 365)
+            except Exception:
+                dob = None
+
+        profile, _ = PatientProfile.objects.get_or_create(
+            user=user,
+            defaults={
+                'mobile': mobile,
+                'gender': gender,
+                'address': address,
+                'date_of_birth': dob,
+            }
+        )
+
+        doctor = get_object_or_404(DoctorProfile, id=doctor_id)
+        today = datetime.date.today()
+
+        last_token = Appointment.objects.filter(doctor=doctor, appointment_date=today).aggregate(max_token=Max('queue_token'))['max_token'] or 0
+        new_token = last_token + 1
+
+        waiting_count = Appointment.objects.filter(doctor=doctor, appointment_date=today, status__in=['waiting', 'calling']).count()
+        est_wait = max(5, (waiting_count + 1) * 12)
+
+        app_time = datetime.datetime.now().time()
+        if time_str:
+            try:
+                clean_time = time_str.strip().upper()
+                if 'AM' in clean_time or 'PM' in clean_time:
+                    from datetime import datetime as dt
+                    app_time = dt.strptime(clean_time, '%I:%M %p').time()
+                else:
+                    parts = clean_time.split(':')
+                    app_time = datetime.time(int(parts[0]), int(parts[1]))
+            except Exception:
+                pass
+
+        appointment = Appointment.objects.create(
+            patient=user,
+            doctor=doctor,
+            appointment_date=today,
+            appointment_time=app_time,
+            queue_token=new_token,
+            estimated_wait_minutes=est_wait,
+            priority=priority,
+            reason=reason,
+            status='waiting',
+        )
+
+        Notification.objects.create(
+            patient=user,
+            title='Queue Token Generated',
+            message=f'Token #{new_token} is active for Dr. {doctor.user.get_full_name()} ({doctor.department.name}). Priority: {priority}.'
+        )
+
+        resp_data = AppointmentSerializer(appointment).data
+        resp_data['queue_position'] = waiting_count + 1
+        return Response(resp_data, status=status.HTTP_201_CREATED)
+
+
+class DoctorAvailabilityView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        doctors = DoctorProfile.objects.filter(is_approved=True).select_related('user', 'department')
+        today = datetime.date.today()
+        data = []
+        for doc in doctors:
+            waiting = Appointment.objects.filter(doctor=doc, appointment_date=today, status__in=['waiting', 'calling', 'in_consultation']).count()
+            data.append({
+                'id': doc.id,
+                'name': doc.user.get_full_name() or doc.user.username,
+                'email': doc.user.email,
+                'role': doc.role,
+                'department_id': doc.department.id,
+                'department_name': doc.department.name,
+                'specialty': doc.specialty,
+                'qualification': doc.qualification,
+                'is_available': doc.is_available,
+                'consultation_start': str(doc.consultation_start) if doc.consultation_start else '09:00:00',
+                'consultation_end': str(doc.consultation_end) if doc.consultation_end else '17:00:00',
+                'current_queue_count': waiting,
+            })
+        return Response(data)
+
+    def post(self, request, pk=None):
+        doc = get_object_or_404(DoctorProfile, id=pk)
+        doc.is_available = not doc.is_available
+        doc.save(update_fields=['is_available'])
+        return Response({'id': doc.id, 'name': doc.user.get_full_name(), 'is_available': doc.is_available})
+
+
+class StaffLoginView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        identifier = request.data.get('email', '').strip().lower()
+        password = request.data.get('password', '').strip()
+
+        user = authenticate(username=identifier, password=password)
+        if not user:
+            user_by_email = User.objects.filter(email=identifier).first()
+            if user_by_email:
+                user = authenticate(username=user_by_email.username, password=password)
+
+        if not user:
+            return Response({'detail': 'Invalid staff credentials.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+        profile = getattr(user, 'doctor_profile', None)
+        if not profile:
+            return Response({'detail': 'No professional profile registered for this account.'}, status=status.HTTP_403_FORBIDDEN)
+
+        if not profile.is_approved:
+            return Response({'detail': 'Your professional account is waiting for admin approval.'}, status=status.HTTP_403_FORBIDDEN)
+
+        tokens = RefreshToken.for_user(user)
+        return Response({
+            'access': str(tokens.access_token),
+            'refresh': str(tokens),
+            'staff': {
+                'id': profile.id,
+                'user_id': user.id,
+                'name': user.get_full_name() or user.username,
+                'email': user.email,
+                'role': profile.role,
+                'department': profile.department.name,
+                'department_id': profile.department.id,
+                'specialty': profile.specialty,
+                'qualification': profile.qualification,
+                'is_available': profile.is_available,
+            }
+        })
 
 
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):

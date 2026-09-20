@@ -29,7 +29,11 @@ class Department(models.Model):
 class DoctorProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='doctor_profile')
     department = models.ForeignKey(Department, on_delete=models.PROTECT, related_name='doctors')
-    role = models.CharField(max_length=20, choices=[('Doctor', 'Doctor'), ('Nurse', 'Nurse')], default='Doctor')
+    role = models.CharField(
+        max_length=20,
+        choices=[('Doctor', 'Doctor'), ('Nurse', 'Nurse'), ('Receptionist', 'Receptionist')],
+        default='Doctor',
+    )
     qualification = models.CharField(max_length=120, blank=True, default='MBBS, MD')
     specialty = models.CharField(max_length=120, blank=True, default='')
     is_approved = models.BooleanField(default=False)
@@ -42,9 +46,16 @@ class DoctorProfile(models.Model):
 
 
 class Appointment(models.Model):
+    PRIORITY_CHOICES = [
+        ('Normal', 'Normal'),
+        ('High', 'High'),
+        ('Emergency', 'Emergency'),
+    ]
     STATUS_CHOICES = [
         ('upcoming', 'Upcoming'),
+        ('checked_in', 'Checked-in'),
         ('waiting', 'Waiting'),
+        ('calling', 'Calling'),
         ('in_consultation', 'In consultation'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
@@ -56,9 +67,16 @@ class Appointment(models.Model):
     appointment_time = models.TimeField()
     queue_token = models.PositiveIntegerField()
     estimated_wait_minutes = models.PositiveIntegerField(default=15)
-    reason = models.TextField(blank=True)
+    priority = models.CharField(max_length=20, choices=PRIORITY_CHOICES, default='Normal')
+    reason = models.TextField(blank=True, default='')
     hospital_name = models.CharField(max_length=160, default='City Care Hospital, Lucknow')
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default='upcoming')
+    diagnosis = models.TextField(blank=True, default='')
+    clinical_notes = models.TextField(blank=True, default='')
+    prescription = models.TextField(blank=True, default='')
+    treatment_advice = models.TextField(blank=True, default='')
+    follow_up_date = models.DateField(null=True, blank=True)
+    consultation_completed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

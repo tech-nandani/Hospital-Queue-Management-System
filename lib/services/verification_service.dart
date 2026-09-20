@@ -1,9 +1,11 @@
 import 'package:flutter/foundation.dart';
-
 import '../models/staff_application.dart';
+import 'patient_api_service.dart';
 
 class VerificationService extends ChangeNotifier {
-  VerificationService._();
+  VerificationService._() {
+    _seedDefaultStaff();
+  }
 
   static final VerificationService instance = VerificationService._();
 
@@ -15,6 +17,44 @@ class VerificationService extends ChangeNotifier {
 
   List<StaffApplication> get applications => List.unmodifiable(_applications);
   StaffApplication? get currentStaff => _currentStaff;
+
+  void _seedDefaultStaff() {
+    // Seed Dr. Priya Sharma (matches backend seed)
+    _applications.add(
+      StaffApplication(
+        id: '1',
+        name: 'Dr. Priya Sharma',
+        email: 'priya.sharma@hospital.org',
+        mobile: '9876543210',
+        password: 'DoctorPass123!',
+        role: 'Doctor',
+        department: 'General Medicine',
+        medicalLicenseNumber: 'MCI-102938',
+        degreeCertificate: 'degree.pdf',
+        identityProof: 'id.pdf',
+        registrationCertificate: 'reg.pdf',
+        status: StaffApplicationStatus.approved,
+      ),
+    );
+
+    // Seed Sunita Rao - Receptionist (matches backend seed)
+    _applications.add(
+      StaffApplication(
+        id: '2',
+        name: 'Sunita Rao',
+        email: 'receptionist@hospital.org',
+        mobile: '9876543220',
+        password: 'ReceptionPass123!',
+        role: 'Receptionist',
+        department: 'Front Desk',
+        medicalLicenseNumber: 'REC-998811',
+        degreeCertificate: 'degree.pdf',
+        identityProof: 'id.pdf',
+        registrationCertificate: 'reg.pdf',
+        status: StaffApplicationStatus.approved,
+      ),
+    );
+  }
 
   void logout() {
     _currentStaff = null;
@@ -75,6 +115,46 @@ class VerificationService extends ChangeNotifier {
       }
     }
     return null;
+  }
+
+  Future<StaffApplication?> authenticateAsync(String identifier, String password) async {
+    final clean = identifier.trim();
+    final local = authenticate(clean, password);
+    if (local != null) return local;
+
+    // Try backend authentication
+    try {
+      final res = await PatientApiService.instance.staffLogin(
+        email: clean,
+        password: password,
+      );
+
+      final userObj = res['user'] as Map<String, dynamic>?;
+      final staffApp = StaffApplication(
+        id: userObj?['id']?.toString() ?? '1',
+        name: userObj?['name']?.toString() ?? (clean.contains('priya') ? 'Dr. Priya Sharma' : 'Staff Member'),
+        email: clean,
+        mobile: userObj?['mobile']?.toString() ?? '',
+        password: password,
+        role: userObj?['role']?.toString() ?? (clean.contains('priya') ? 'Doctor' : 'Receptionist'),
+        department: userObj?['department']?.toString() ?? 'General Medicine',
+        medicalLicenseNumber: 'VERIFIED',
+        degreeCertificate: 'degree.pdf',
+        identityProof: 'id.pdf',
+        registrationCertificate: 'reg.pdf',
+        status: StaffApplicationStatus.approved,
+      );
+
+      _applications.removeWhere((a) => a.email.toLowerCase() == clean.toLowerCase());
+      _applications.add(staffApp);
+      _currentStaff = staffApp;
+      rememberedEmail = clean;
+      notifyListeners();
+      return staffApp;
+    } catch (e) {
+      debugPrint('Backend staff login error: $e');
+      return null;
+    }
   }
 
   StaffApplication? authenticate(String identifier, String password) {

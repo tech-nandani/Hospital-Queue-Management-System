@@ -55,6 +55,29 @@ class PatientApiService {
     return _decode(response);
   }
 
+  Future<Map<String, dynamic>> loginWithGoogle({
+    required String email,
+    String? name,
+    String? googleId,
+  }) async {
+    final payload = <String, dynamic>{
+      'email': email,
+    };
+    if (name != null && name.isNotEmpty) {
+      payload['name'] = name;
+    }
+    if (googleId != null && googleId.isNotEmpty) {
+      payload['google_id'] = googleId;
+    }
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/auth/google/'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(payload),
+    );
+    return _decode(response);
+  }
+
   Future<Map<String, dynamic>> getProfile(String token) async {
     final response = await http.get(
       Uri.parse('$baseUrl/profile/'),
@@ -222,6 +245,191 @@ class PatientApiService {
       Uri.parse('$baseUrl/ai/chat/'),
       headers: headers,
       body: jsonEncode(payload),
+    );
+    return _decode(response);
+  }
+
+  // ============================================================
+  // STAFF & QUEUE API ENDPOINTS
+  // ============================================================
+
+  Future<Map<String, dynamic>> staffLogin({
+    required String email,
+    required String password,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/auth/staff-login/'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email, 'password': password}),
+    );
+    return _decode(response);
+  }
+
+  Future<List<Map<String, dynamic>>> getStaffQueue({
+    int? doctorId,
+    String? department,
+    String? status,
+  }) async {
+    final params = <String>[];
+    if (doctorId != null) params.add('doctor=$doctorId');
+    if (department != null && department.isNotEmpty) params.add('department=${Uri.encodeComponent(department)}');
+    if (status != null && status.isNotEmpty) params.add('status=${Uri.encodeComponent(status)}');
+    final query = params.isNotEmpty ? '?${params.join('&')}' : '';
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/staff/queue/$query'),
+      headers: {'Content-Type': 'application/json'},
+    );
+    final data = _decodeListOrMap(response);
+    if (data is List) {
+      return data.cast<Map<String, dynamic>>();
+    }
+    return [];
+  }
+
+  Future<Map<String, dynamic>> generateStaffToken({
+    required String patientName,
+    required String patientMobile,
+    required int doctorId,
+    String? patientGender,
+    int? patientAge,
+    String? patientEmail,
+    String? patientAddress,
+    String? reason,
+    String priority = 'Normal',
+    String? appointmentDate,
+    String? appointmentTime,
+    bool isWalkIn = false,
+  }) async {
+    final payload = <String, dynamic>{
+      'patient_name': patientName,
+      'patient_mobile': patientMobile,
+      'doctor_id': doctorId,
+      'priority': priority,
+      'is_walk_in': isWalkIn,
+    };
+    if (patientGender != null) payload['patient_gender'] = patientGender;
+    if (patientAge != null) payload['patient_age'] = patientAge;
+    if (patientEmail != null) payload['patient_email'] = patientEmail;
+    if (patientAddress != null) payload['patient_address'] = patientAddress;
+    if (reason != null) payload['reason'] = reason;
+    if (appointmentDate != null) payload['appointment_date'] = appointmentDate;
+    if (appointmentTime != null) payload['appointment_time'] = appointmentTime;
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/staff/generate-token/'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(payload),
+    );
+    return _decode(response);
+  }
+
+  Future<List<Map<String, dynamic>>> getDoctorAvailability() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/staff/doctor-availability/'),
+      headers: {'Content-Type': 'application/json'},
+    );
+    final data = _decodeListOrMap(response);
+    if (data is List) {
+      return data.cast<Map<String, dynamic>>();
+    }
+    return [];
+  }
+
+  Future<Map<String, dynamic>> toggleDoctorAvailability(int doctorId, bool isAvailable) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/staff/doctors/$doctorId/toggle-availability/'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'is_available': isAvailable}),
+    );
+    return _decode(response);
+  }
+
+  Future<List<Map<String, dynamic>>> getStaffAppointments({
+    int? doctorId,
+    String? department,
+    String? date,
+    String? status,
+  }) async {
+    final params = <String>['for_staff=1'];
+    if (doctorId != null) params.add('doctor=$doctorId');
+    if (department != null && department.isNotEmpty) params.add('department=${Uri.encodeComponent(department)}');
+    if (date != null && date.isNotEmpty) params.add('date=${Uri.encodeComponent(date)}');
+    if (status != null && status.isNotEmpty) params.add('status=${Uri.encodeComponent(status)}');
+    final query = '?${params.join('&')}';
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/appointments/$query'),
+      headers: {'Content-Type': 'application/json'},
+    );
+    final data = _decodeListOrMap(response);
+    if (data is List) {
+      return data.cast<Map<String, dynamic>>();
+    }
+    return [];
+  }
+
+  Future<Map<String, dynamic>> callAppointment(int appointmentId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/appointments/$appointmentId/call/'),
+      headers: {'Content-Type': 'application/json'},
+    );
+    return _decode(response);
+  }
+
+  Future<Map<String, dynamic>> startConsultation(int appointmentId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/appointments/$appointmentId/start_consultation/'),
+      headers: {'Content-Type': 'application/json'},
+    );
+    return _decode(response);
+  }
+
+  Future<Map<String, dynamic>> completeConsultation(
+    int appointmentId, {
+    String? diagnosis,
+    String? symptoms,
+    String? clinicalNotes,
+    String? prescription,
+    String? treatmentAdvice,
+    String? followUpDate,
+  }) async {
+    final payload = <String, dynamic>{};
+    if (diagnosis != null) payload['diagnosis'] = diagnosis;
+    if (symptoms != null) payload['symptoms'] = symptoms;
+    if (clinicalNotes != null) payload['clinical_notes'] = clinicalNotes;
+    if (prescription != null) payload['prescription'] = prescription;
+    if (treatmentAdvice != null) payload['treatment_advice'] = treatmentAdvice;
+    if (followUpDate != null) payload['follow_up_date'] = followUpDate;
+
+    final response = await http.post(
+      Uri.parse('$baseUrl/appointments/$appointmentId/complete_consultation/'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(payload),
+    );
+    return _decode(response);
+  }
+
+  Future<Map<String, dynamic>> checkInAppointment(int appointmentId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/appointments/$appointmentId/check_in/'),
+      headers: {'Content-Type': 'application/json'},
+    );
+    return _decode(response);
+  }
+
+  Future<Map<String, dynamic>> markAppointmentNoShow(int appointmentId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/appointments/$appointmentId/no_show/'),
+      headers: {'Content-Type': 'application/json'},
+    );
+    return _decode(response);
+  }
+
+  Future<Map<String, dynamic>> staffCancelAppointment(int appointmentId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/appointments/$appointmentId/cancel/'),
+      headers: {'Content-Type': 'application/json'},
     );
     return _decode(response);
   }

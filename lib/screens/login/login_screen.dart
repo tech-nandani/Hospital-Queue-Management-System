@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../doctor/doctor_register_screen.dart';
 import '../doctor/doctor_dashboard_screen.dart';
 import '../nurse/nurse_dashboard_screen.dart';
+import '../receptionist/receptionist_dashboard_screen.dart';
 import '../../models/staff_application.dart';
 import '../../services/verification_service.dart';
 import '../../widgets/hospital_workflow_visual.dart';
@@ -480,37 +481,118 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ],
                             ),
+
+                            const SizedBox(height: 18),
+
+                            // Quick test login chips
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF1F5F9),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Quick Demo Login:',
+                                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Color(0xFF64748B)),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: InkWell(
+                                          onTap: () {
+                                            emailController.text = 'priya.sharma@hospital.org';
+                                            passwordController.text = 'DoctorPass123!';
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.circular(8),
+                                              border: Border.all(color: const Color(0xFFCBD5E1)),
+                                            ),
+                                            child: const Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Icon(Icons.medical_services_rounded, size: 14, color: Color(0xFF2563EB)),
+                                                SizedBox(width: 6),
+                                                Text('Doctor', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: InkWell(
+                                          onTap: () {
+                                            emailController.text = 'receptionist@hospital.org';
+                                            passwordController.text = 'ReceptionPass123!';
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.circular(8),
+                                              border: Border.all(color: const Color(0xFFCBD5E1)),
+                                            ),
+                                            child: const Row(
+                                              mainAxisAlignment: MainAxisAlignment.center,
+                                              children: [
+                                                Icon(Icons.support_agent_rounded, size: 14, color: Color(0xFF7C5CFC)),
+                                                SizedBox(width: 6),
+                                                Text('Receptionist', style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700)),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),
                     ),
 
-                      const SizedBox(height: 26),
+                    const SizedBox(height: 26),
 
-                      // =========================
-                      // FOOTER
-                      // =========================
-                      const Text(
-                        'YOUR HEALTH • OUR PRIORITY',
-                        style: TextStyle(
-                          color: Color(0xFF9AA5B4),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                        ),
+                    // =========================
+                    // FOOTER
+                    // =========================
+                    const Text(
+                      'YOUR HEALTH • OUR PRIORITY',
+                      style: TextStyle(
+                        color: Color(0xFF9AA5B4),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 );
   }
 
-  void _login() {
-    final application = VerificationService.instance.authenticate(
-      emailController.text,
-      passwordController.text,
+  void _login() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text;
+
+    if (email.isEmpty || password.isEmpty) {
+      _showMessage('Please enter your email and password.');
+      return;
+    }
+
+    final application = await VerificationService.instance.authenticateAsync(
+      email,
+      password,
     );
 
     if (application == null) {
-      _showMessage('No professional application found for this login.');
+      _showMessage('Invalid credentials or account not found.');
       return;
     }
 
@@ -526,16 +608,20 @@ class _LoginScreenState extends State<LoginScreen> {
 
     TextInput.finishAutofillContext();
 
-    final dashboard = application.role == 'Nurse'
-        ? NurseDashboardScreen(
-            nurseName: application.name,
-            department: application.department,
-          )
-        : DoctorDashboardScreen(
-            doctorName: application.name,
-            department: application.department,
-          );
+    Widget dashboard;
+    if (application.role.toLowerCase() == 'receptionist' || application.role.toLowerCase() == 'nurse') {
+      dashboard = ReceptionistDashboardScreen(
+        receptionistName: application.name,
+      );
+    } else {
+      dashboard = DoctorDashboardScreen(
+        doctorName: application.name,
+        department: application.department,
+        doctorId: int.tryParse(application.id) ?? 1,
+      );
+    }
 
+    if (!mounted) return;
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (_) => dashboard),

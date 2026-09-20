@@ -241,6 +241,33 @@ class PatientService extends ChangeNotifier {
     return _account!;
   }
 
+  Future<PatientAccount> loginWithGoogle({
+    required String email,
+    String? name,
+    String? googleId,
+  }) async {
+    final data = await PatientApiService.instance.loginWithGoogle(
+      email: email,
+      name: name,
+      googleId: googleId,
+    );
+    _authToken = data['access'] as String?;
+    rememberedEmail = email.trim();
+    final patient = data['patient'] as Map<String, dynamic>;
+    _account = PatientAccount(
+      name: patient['name'] as String? ?? name ?? 'Patient',
+      email: patient['email'] as String? ?? email,
+      mobile: patient['mobile'] as String? ?? '',
+      password: '',
+      dateOfBirth: patient['date_of_birth'] as String?,
+      gender: patient['gender'] as String?,
+      address: patient['address'] as String? ?? _account?.address,
+    );
+    notifyListeners();
+    await fetchAppointmentsFromBackend();
+    return _account!;
+  }
+
   PatientAccount register({
     required String name,
     required String email,

@@ -101,15 +101,52 @@ class DoctorSerializer(serializers.ModelSerializer):
 class AppointmentSerializer(serializers.ModelSerializer):
     doctor_details = DoctorSerializer(source='doctor', read_only=True)
     department = serializers.CharField(source='doctor.department.name', read_only=True)
+    patient_name = serializers.SerializerMethodField()
+    patient_email = serializers.CharField(source='patient.email', read_only=True)
+    patient_mobile = serializers.SerializerMethodField()
+    patient_gender = serializers.SerializerMethodField()
+    patient_age = serializers.SerializerMethodField()
+    patient_dob = serializers.SerializerMethodField()
 
     class Meta:
         model = Appointment
         fields = [
-            'id', 'doctor', 'doctor_details', 'department', 'appointment_date',
-            'appointment_time', 'queue_token', 'estimated_wait_minutes',
-            'reason', 'hospital_name', 'status', 'created_at', 'updated_at',
+            'id', 'patient', 'patient_name', 'patient_email', 'patient_mobile',
+            'patient_gender', 'patient_age', 'patient_dob', 'doctor',
+            'doctor_details', 'department', 'appointment_date', 'appointment_time',
+            'queue_token', 'estimated_wait_minutes', 'priority', 'reason',
+            'hospital_name', 'status', 'diagnosis', 'clinical_notes',
+            'prescription', 'treatment_advice', 'follow_up_date',
+            'consultation_completed_at', 'created_at', 'updated_at',
         ]
-        read_only_fields = ['queue_token', 'estimated_wait_minutes', 'status']
+        read_only_fields = ['queue_token', 'estimated_wait_minutes']
+
+    def get_patient_name(self, obj):
+        if obj.patient:
+            return obj.patient.get_full_name() or obj.patient.first_name or obj.patient.username
+        return 'Patient'
+
+    def get_patient_mobile(self, obj):
+        profile = getattr(obj.patient, 'patient_profile', None)
+        return profile.mobile if profile else ''
+
+    def get_patient_gender(self, obj):
+        profile = getattr(obj.patient, 'patient_profile', None)
+        return profile.gender if profile else ''
+
+    def get_patient_dob(self, obj):
+        profile = getattr(obj.patient, 'patient_profile', None)
+        return str(profile.date_of_birth) if profile and profile.date_of_birth else ''
+
+    def get_patient_age(self, obj):
+        import datetime
+        profile = getattr(obj.patient, 'patient_profile', None)
+        if profile and profile.date_of_birth:
+            today = datetime.date.today()
+            return today.year - profile.date_of_birth.year - (
+                (today.month, today.day) < (profile.date_of_birth.month, profile.date_of_birth.day)
+            )
+        return None
 
 
 class NotificationSerializer(serializers.ModelSerializer):

@@ -4,6 +4,8 @@ import '../patient/patient_register_screen.dart';
 import '../patient/patient_dashboard_screen.dart';
 import '../../services/patient_service.dart';
 import '../../widgets/hospital_workflow_visual.dart';
+import '../../widgets/google_account_picker_dialog.dart';
+import '../../widgets/google_logo_icon.dart';
 
 class PatientLoginScreen extends StatefulWidget {
   final String? initialEmail;
@@ -18,6 +20,7 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
   final TextEditingController passwordController = TextEditingController();
 
   bool isPasswordVisible = false;
+  bool _isGoogleLoading = false;
 
   @override
   void initState() {
@@ -443,6 +446,57 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
                 const SizedBox(height: 20),
 
                 // =========================
+                // GOOGLE / GMAIL LOGIN BUTTON
+                // =========================
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: OutlinedButton(
+                    onPressed: _isGoogleLoading ? null : _handleGoogleSignIn,
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF2D3748),
+                      side: const BorderSide(
+                        color: Color(0xFFD8E1EC),
+                        width: 1.2,
+                      ),
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    child: _isGoogleLoading
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Color(0xFF1976D2),
+                              ),
+                            ),
+                          )
+                        : const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              GoogleLogoIcon(size: 20),
+                              SizedBox(width: 12),
+                              Text(
+                                'Continue with Google',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF2D3748),
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
+
+                const SizedBox(height: 20),
+
+                // =========================
                 // CREATE ACCOUNT
                 // =========================
                 Wrap(
@@ -529,5 +583,78 @@ class _PatientLoginScreenState extends State<PatientLoginScreen> {
       context,
       MaterialPageRoute(builder: (_) => const PatientDashboardScreen()),
     );
+  }
+
+  bool _isGoogleDialogShowing = false;
+
+  Future<void> _handleGoogleSignIn() async {
+    if (_isGoogleDialogShowing || _isGoogleLoading) return;
+    _isGoogleDialogShowing = true;
+
+    try {
+      final defaultEmail = emailController.text.trim().isNotEmpty
+          ? emailController.text.trim()
+          : (PatientService.instance.rememberedEmail ?? 'ashoknandanik@gmail.com');
+
+      final result = await showDialog<Map<String, String>>(
+        context: context,
+        barrierDismissible: true,
+        builder: (ctx) => GoogleAccountPickerDialog(
+          suggestedEmail: defaultEmail,
+        ),
+      );
+
+      if (result == null || !mounted) return;
+
+      final email = result['email']?.trim() ?? '';
+      final name = result['name']?.trim();
+      if (email.isEmpty) return;
+
+      setState(() => _isGoogleLoading = true);
+
+      try {
+        final account = await PatientService.instance.loginWithGoogle(
+          email: email,
+          name: name,
+        );
+        if (!mounted) return;
+
+        emailController.text = account.email;
+        TextInput.finishAutofillContext();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Signed in successfully as ${account.name}'),
+            backgroundColor: const Color(0xFF2E7D32),
+          ),
+        );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const PatientDashboardScreen()),
+        );
+      } catch (error) {
+        if (!mounted) return;
+        var raw = error
+            .toString()
+            .replaceFirst('Exception: ', '')
+            .replaceFirst('ClientException: ', '');
+        if (raw.toLowerCase().contains('failed to fetch') ||
+            raw.toLowerCase().contains('clientfailed') ||
+            raw.toLowerCase().contains('connection refused')) {
+          raw =
+              'Unable to connect to backend server. Please make sure the Django server is running on http://127.0.0.1:8000';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(raw)),
+        );
+      } finally {
+        if (mounted) {
+          setState(() => _isGoogleLoading = false);
+        }
+      }
+    } finally {
+      _isGoogleDialogShowing = false;
+    }
   }
 }

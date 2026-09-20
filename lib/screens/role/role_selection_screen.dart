@@ -187,9 +187,9 @@ class RoleSelectionScreen extends StatelessWidget {
               _RoleCard(
                 icon: Icons.person_rounded,
                 title: 'Patient',
-                subtitle: 'Book appointments and manage your queue',
-                iconColor: const Color(0xFF1976D2),
-                backgroundColor: const Color(0xFFEAF3FF),
+                subtitle: 'Book appointments, track live queue & medical records',
+                iconColor: const Color(0xFF2563EB),
+                backgroundColor: const Color(0xFFEFF6FF),
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const PatientLoginScreen()),
@@ -197,14 +197,34 @@ class RoleSelectionScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               _RoleCard(
-                icon: Icons.badge_rounded,
-                title: 'Doctor / Receptionist',
-                subtitle: 'Manage patients, appointments and hospital queues',
-                iconColor: const Color(0xFF6C63B5),
-                backgroundColor: const Color(0xFFF0EEFF),
+                icon: Icons.medical_services_rounded,
+                title: 'Doctor',
+                subtitle: 'Treat patients, consultations, clinical notes & prescriptions',
+                iconColor: const Color(0xFF2563EB),
+                backgroundColor: const Color(0xFFEFF6FF),
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const LoginScreen(
+                      initialEmail: 'priya.sharma@hospital.org',
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              _RoleCard(
+                icon: Icons.support_agent_rounded,
+                title: 'Receptionist',
+                subtitle: 'Patient registration, token generation, triage & doctor availability',
+                iconColor: const Color(0xFF7C5CFC),
+                backgroundColor: const Color(0xFFF3F0FF),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const LoginScreen(
+                      initialEmail: 'receptionist@hospital.org',
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 12),

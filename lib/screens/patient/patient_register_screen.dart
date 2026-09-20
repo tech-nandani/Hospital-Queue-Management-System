@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'patient_dashboard_screen.dart';
 import '../../services/patient_service.dart';
+import '../../widgets/google_account_picker_dialog.dart';
+import '../../widgets/google_logo_icon.dart';
 import '../../widgets/hospital_workflow_visual.dart';
 import '../../widgets/split_registration_layout.dart';
 
@@ -396,6 +399,68 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                   ),
                 ),
 
+                const SizedBox(height: 16),
+
+                // =========================
+                // OR DIVIDER
+                // =========================
+                const Row(
+                  children: [
+                    Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      child: Text(
+                        'OR',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF94A3B8),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    Expanded(child: Divider(color: Color(0xFFE2E8F0))),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+
+                // =========================
+                // GOOGLE SIGN UP BUTTON
+                // =========================
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: OutlinedButton(
+                    onPressed: isLoading ? null : _handleGoogleSignIn,
+                    style: OutlinedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF2D3748),
+                      side: const BorderSide(
+                        color: Color(0xFFCBD5E1),
+                        width: 1.1,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        GoogleLogoIcon(size: 19),
+                        SizedBox(width: 10),
+                        Text(
+                          'Sign up with Google',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF334155),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
                 const SizedBox(height: 20),
 
                 // Login Link
@@ -606,5 +671,74 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
         borderSide: const BorderSide(color: Color(0xFF1976D2), width: 1.5),
       ),
     );
+  }
+
+  bool _isGoogleDialogShowing = false;
+
+  Future<void> _handleGoogleSignIn() async {
+    if (_isGoogleDialogShowing || isLoading) return;
+    _isGoogleDialogShowing = true;
+
+    try {
+      final defaultEmail = emailController.text.trim().isNotEmpty
+          ? emailController.text.trim()
+          : (PatientService.instance.rememberedEmail ?? 'ashoknandanik@gmail.com');
+
+      final result = await showDialog<Map<String, String>>(
+        context: context,
+        barrierDismissible: true,
+        builder: (ctx) => GoogleAccountPickerDialog(
+          suggestedEmail: defaultEmail,
+        ),
+      );
+
+      if (result == null || !mounted) return;
+
+      final email = result['email']?.trim() ?? '';
+      final name = result['name']?.trim() ?? nameController.text.trim();
+      if (email.isEmpty) return;
+
+      setState(() => isLoading = true);
+
+      try {
+        final account = await PatientService.instance.loginWithGoogle(
+          email: email,
+          name: name.isNotEmpty ? name : null,
+        );
+        if (!mounted) return;
+
+        TextInput.finishAutofillContext();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Account ready! Welcome, ${account.name}'),
+            backgroundColor: const Color(0xFF2E7D32),
+          ),
+        );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const PatientDashboardScreen()),
+        );
+      } catch (error) {
+        if (!mounted) return;
+        var raw = error
+            .toString()
+            .replaceFirst('Exception: ', '')
+            .replaceFirst('ClientException: ', '');
+        if (raw.toLowerCase().contains('failed to fetch') ||
+            raw.toLowerCase().contains('clientfailed') ||
+            raw.toLowerCase().contains('connection refused')) {
+          raw =
+              'Unable to connect to backend server. Please make sure the Django server is running on http://127.0.0.1:8000';
+        }
+        _showMessage(raw);
+      } finally {
+        if (mounted) {
+          setState(() => isLoading = false);
+        }
+      }
+    } finally {
+      _isGoogleDialogShowing = false;
+    }
   }
 }
