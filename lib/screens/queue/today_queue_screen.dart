@@ -49,9 +49,8 @@ class TodayQueueScreen extends StatelessWidget {
             },
 
             onAddPatientTap: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const AddPatientScreen()),
-              );
+              Navigator.of(context).pop();
+              _openAddPatient(context);
             },
           ),
         ),
@@ -83,15 +82,7 @@ class TodayQueueScreen extends StatelessWidget {
                           );
                         },
 
-                        onAddPatientTap: () {
-                          Navigator.of(context).pop();
-
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => const AddPatientScreen(),
-                            ),
-                          );
-                        },
+                        onAddPatientTap: () => _openAddPatient(context),
                       ),
 
                     Expanded(
@@ -1379,7 +1370,7 @@ class _DonutChart extends StatelessWidget {
         ],
         centerSpaceColor: Colors.white,
       ),
-      swapAnimationDuration: const Duration(milliseconds: 450),
+      duration: const Duration(milliseconds: 450),
     );
   }
 }

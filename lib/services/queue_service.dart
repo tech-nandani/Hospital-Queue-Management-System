@@ -376,4 +376,17 @@ class QueueService extends ChangeNotifier {
     final period = now.hour >= 12 ? 'PM' : 'AM';
     return '$displayHour:$minute $period';
   }
+
+  @visibleForTesting
+  void setPatientsForTesting(List<QueuePatient> list) {
+    _patients.clear();
+    _patients.addAll(list);
+    notifyListeners();
+  }
+
+  @visibleForTesting
+  void clearForTesting() {
+    _patients.clear();
+    notifyListeners();
+  }
 }

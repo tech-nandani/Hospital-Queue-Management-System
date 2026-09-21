@@ -309,15 +309,11 @@ class _PatientDashboardScreenState extends State<PatientDashboardScreen> {
 }
 
 class _PatientAvatarPainter extends CustomPainter {
-  final Color skinColor;
-  final Color hairColor;
-  final Color shirtColor;
+  static const Color skinColor = Color(0xFFFFDFC4);
+  static const Color hairColor = Color(0xFF2B2020);
+  static const Color shirtColor = Color(0xFFF472B6);
 
-  _PatientAvatarPainter({
-    this.skinColor = const Color(0xFFFFDFC4),
-    this.hairColor = const Color(0xFF2B2020),
-    this.shirtColor = const Color(0xFFF472B6),
-  });
+  const _PatientAvatarPainter();
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -413,7 +409,7 @@ class _PatientAvatarPainter extends CustomPainter {
     );
 
     final blushPaint = Paint()
-      ..color = const Color(0xFFFB7185).withOpacity(0.55);
+      ..color = const Color(0xFFFB7185).withValues(alpha: 0.55);
     canvas.drawOval(
       Rect.fromCenter(
         center: Offset(center.dx - size.width * 0.15, size.height * 0.55),
@@ -487,7 +483,7 @@ class PatientAvatarWidget extends StatelessWidget {
                   border: Border.all(color: Colors.white, width: 2.5),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.15),
+                      color: Colors.black.withValues(alpha: 0.15),
                       blurRadius: 5,
                       offset: const Offset(0, 2),
                     ),
@@ -1117,7 +1113,7 @@ class _FloatingAIAssistantButton extends StatelessWidget {
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF1D72FE).withOpacity(0.38),
+              color: const Color(0xFF1D72FE).withValues(alpha: 0.38),
               blurRadius: 20,
               spreadRadius: 3,
               offset: const Offset(0, 6),
@@ -1151,7 +1147,7 @@ class _FloatingAIAssistantButton extends StatelessWidget {
                   Text(
                     'AI Assistant',
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.95),
+                      color: Colors.white.withValues(alpha: 0.95),
                       fontSize: 8,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.2,
@@ -1832,7 +1828,7 @@ class _BookTabState extends State<_BookTab> {
         border: Border.all(color: const Color(0xFFE2E8F0)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -1993,7 +1989,7 @@ class _BookTabState extends State<_BookTab> {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: _departments.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        separatorBuilder: (_, _) => const SizedBox(width: 10),
         itemBuilder: (context, index) {
           final dept = _departments[index];
           final isSelected = _selectedDept?['id'] == dept['id'];
@@ -2022,7 +2018,7 @@ class _BookTabState extends State<_BookTab> {
                 boxShadow: isSelected
                     ? [
                         BoxShadow(
-                          color: const Color(0xFF1D72FE).withOpacity(0.12),
+                          color: const Color(0xFF1D72FE).withValues(alpha: 0.12),
                           blurRadius: 8,
                           offset: const Offset(0, 3),
                         ),
@@ -2037,7 +2033,7 @@ class _BookTabState extends State<_BookTab> {
                     height: 36,
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? const Color(0xFF1D72FE).withOpacity(0.12)
+                          ? const Color(0xFF1D72FE).withValues(alpha: 0.12)
                           : const Color(0xFFF1F5F9),
                       shape: BoxShape.circle,
                     ),
@@ -2142,7 +2138,7 @@ class _BookTabState extends State<_BookTab> {
                   boxShadow: isSelected
                       ? [
                           BoxShadow(
-                            color: const Color(0xFF1D72FE).withOpacity(0.08),
+                            color: const Color(0xFF1D72FE).withValues(alpha: 0.08),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
                           ),
@@ -2303,7 +2299,7 @@ class _BookTabState extends State<_BookTab> {
                       boxShadow: isSelected
                           ? [
                               BoxShadow(
-                                color: const Color(0xFF1D72FE).withOpacity(0.2),
+                                color: const Color(0xFF1D72FE).withValues(alpha: 0.2),
                                 blurRadius: 6,
                                 offset: const Offset(0, 2),
                               ),
@@ -2458,7 +2454,7 @@ class _BookTabState extends State<_BookTab> {
             border: Border.all(color: const Color(0xFFE2E8F0)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.02),
+                color: Colors.black.withValues(alpha: 0.02),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
@@ -2512,7 +2508,7 @@ class _BookTabState extends State<_BookTab> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: upcoming.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  separatorBuilder: (_, _) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final apt = upcoming[index];
                     return _buildUpcomingAppointmentItem(apt);
@@ -2532,7 +2528,7 @@ class _BookTabState extends State<_BookTab> {
             border: Border.all(color: const Color(0xFFE2E8F0)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.02),
+                color: Colors.black.withValues(alpha: 0.02),
                 blurRadius: 10,
                 offset: const Offset(0, 2),
               ),
@@ -2586,7 +2582,7 @@ class _BookTabState extends State<_BookTab> {
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
                   itemCount: past.take(3).length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
                     final apt = past[index];
                     return _buildPastAppointmentItem(apt);
@@ -2616,7 +2612,7 @@ class _BookTabState extends State<_BookTab> {
                 width: 34,
                 height: 34,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0284C7).withOpacity(0.12),
+                  color: const Color(0xFF0284C7).withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.schedule_rounded, color: Color(0xFF0284C7), size: 18),
@@ -3258,7 +3254,7 @@ class _ProfileTab extends StatelessWidget {
                   border: Border.all(color: const Color(0xFFEEF2F6)),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
+                      color: Colors.black.withValues(alpha: 0.02),
                       blurRadius: 16,
                       offset: const Offset(0, 4),
                     ),
@@ -3478,7 +3474,7 @@ class _ProfileTab extends StatelessWidget {
                         fontStyle: FontStyle.italic,
                         fontFamily: 'serif',
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF818CF8).withOpacity(0.85),
+                        color: const Color(0xFF818CF8).withValues(alpha: 0.85),
                         height: 1.25,
                       ),
                     ),
@@ -3509,7 +3505,7 @@ class _ProfileTab extends StatelessWidget {
         border: Border.all(color: const Color(0xFFEEF2F6)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -3628,7 +3624,7 @@ class _ProfileTab extends StatelessWidget {
         border: Border.all(color: const Color(0xFFEEF2F6)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 16,
             offset: const Offset(0, 4),
           ),
@@ -3902,7 +3898,7 @@ class _ProfileTab extends StatelessWidget {
                       ),
                       const SizedBox(height: 6),
                       DropdownButtonFormField<String>(
-                        value: selectedGender,
+                        initialValue: selectedGender,
                         hint: const Text('Select gender'),
                         decoration: _dialogInputDecoration(
                           hint: 'Select gender',
@@ -4340,85 +4336,6 @@ class _PageIntro extends StatelessWidget {
   );
 }
 
-class _FieldLabel extends StatelessWidget {
-  final String text;
-
-  const _FieldLabel(this.text);
-
-  @override
-  Widget build(BuildContext context) => Text(
-    text,
-    style: const TextStyle(
-      fontSize: 13,
-      fontWeight: FontWeight.w700,
-      color: Color(0xFF34495E),
-    ),
-  );
-}
-
-class _Dropdown<T> extends StatelessWidget {
-  final T? value;
-  final String hint;
-  final List<T> items;
-  final ValueChanged<T?>? onChanged;
-
-  const _Dropdown({
-    required this.value,
-    required this.hint,
-    required this.items,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) => DropdownButtonFormField<T>(
-    initialValue: value,
-    hint: Text(hint),
-    items: items
-        .map((item) => DropdownMenuItem<T>(value: item, child: Text('$item')))
-        .toList(),
-    onChanged: onChanged,
-    decoration: InputDecoration(
-      filled: true,
-      fillColor: Colors.white,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFFE2EAF3)),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFFE2EAF3)),
-      ),
-      prefixIcon: const Icon(
-        Icons.keyboard_arrow_down_rounded,
-        color: Color(0xFF1976D2),
-      ),
-    ),
-  );
-}
-
-class _InputShell extends StatelessWidget {
-  final IconData icon;
-  final String text;
-
-  const _InputShell({required this.icon, required this.text});
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 17),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(14),
-      border: Border.all(color: const Color(0xFFE2EAF3)),
-    ),
-    child: Row(
-      children: [
-        Icon(icon, color: const Color(0xFF1976D2)),
-        const SizedBox(width: 12),
-        Text(text),
-      ],
-    ),
-  );
-}
 
 class _ActionCard extends StatelessWidget {
   final IconData icon;

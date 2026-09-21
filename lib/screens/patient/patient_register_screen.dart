@@ -443,20 +443,23 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                         borderRadius: BorderRadius.circular(14),
                       ),
                     ),
-                    child: const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        GoogleLogoIcon(size: 19),
-                        SizedBox(width: 10),
-                        Text(
-                          'Sign up with Google',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF334155),
+                    child: const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          GoogleLogoIcon(size: 19),
+                          SizedBox(width: 10),
+                          Text(
+                            'Sign up with Google',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF334155),
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),

@@ -71,9 +71,9 @@ void main() {
       ),
     );
 
-    // Verify Doctor / Receptionist card and description
-    expect(find.text('Doctor / Receptionist'), findsOneWidget);
-    expect(find.text('Manage patients, appointments and hospital queues'), findsOneWidget);
+    // Verify Doctor and Receptionist role cards
+    expect(find.text('Doctor'), findsOneWidget);
+    expect(find.text('Receptionist'), findsOneWidget);
     expect(find.text('Doctor / Nurse'), findsNothing);
 
     // Verify Patient and Admin role cards

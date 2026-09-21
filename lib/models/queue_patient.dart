@@ -35,7 +35,7 @@ class QueuePatient {
     required this.priority,
     required this.time,
     this.department = 'General Medicine',
-    this.doctorName = 'Dr. Priya Sharma',
+    this.doctorName = 'Doctor',
     this.doctorId,
     this.isWalkIn = false,
     this.status = 'Waiting',

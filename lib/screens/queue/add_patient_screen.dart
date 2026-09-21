@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../../services/queue_service.dart';
 import '../../widgets/hospital_sidebar.dart';
 import '../doctor/doctor_dashboard_screen.dart';
 import 'today_queue_screen.dart';
@@ -41,19 +40,11 @@ class AddPatientScreen extends StatelessWidget {
             selectedPage: HospitalSidebarPage.addPatient,
             onDashboardTap: () {
               Navigator.of(context).pop();
-
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (_) => const DoctorDashboardScreen(),
-                ),
-              );
+              _openDashboard(context);
             },
             onTodayQueueTap: () {
               Navigator.of(context).pop();
-
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (_) => const TodayQueueScreen()),
-              );
+              _openTodayQueue(context);
             },
           ),
         ),
@@ -75,20 +66,8 @@ class AddPatientScreen extends StatelessWidget {
               if (desktop)
                 HospitalSidebar(
                   selectedPage: HospitalSidebarPage.addPatient,
-                  onDashboardTap: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (_) => const DoctorDashboardScreen(),
-                      ),
-                    );
-                  },
-                  onTodayQueueTap: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (_) => const TodayQueueScreen(),
-                      ),
-                    );
-                  },
+                  onDashboardTap: () => _openDashboard(context),
+                  onTodayQueueTap: () => _openTodayQueue(context),
                 ),
 
               // ==================================================

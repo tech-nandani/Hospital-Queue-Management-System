@@ -11,18 +11,22 @@ class CareFlowFloatingAI extends StatefulWidget {
     required this.role,
   });
 
+  static void open(BuildContext context, {String role = 'Doctor', String? initialPrompt}) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _AIChatSheet(role: role, initialPrompt: initialPrompt),
+    );
+  }
+
   @override
   State<CareFlowFloatingAI> createState() => _CareFlowFloatingAIState();
 }
 
 class _CareFlowFloatingAIState extends State<CareFlowFloatingAI> {
   void _openChatDialog(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => _AIChatSheet(role: widget.role),
-    );
+    CareFlowFloatingAI.open(context, role: widget.role);
   }
 
   @override
@@ -44,7 +48,8 @@ class _CareFlowFloatingAIState extends State<CareFlowFloatingAI> {
 
 class _AIChatSheet extends StatefulWidget {
   final String role;
-  const _AIChatSheet({required this.role});
+  final String? initialPrompt;
+  const _AIChatSheet({required this.role, this.initialPrompt});
 
   @override
   State<_AIChatSheet> createState() => _AIChatSheetState();
@@ -63,6 +68,7 @@ class _AIChatSheetState extends State<_AIChatSheet> {
           "Show today's queue",
           "Summarize patient history",
           "Show priority patients",
+          "Show today's appointments",
         ];
       case 'Receptionist':
         return [
@@ -87,6 +93,11 @@ class _AIChatSheetState extends State<_AIChatSheet> {
       'role': 'assistant',
       'text': 'Hello! I am your CareFlow Clinical & Queue AI Assistant. How can I assist you in the ${widget.role} workspace today?',
     });
+    if (widget.initialPrompt != null && widget.initialPrompt!.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _sendMessage(widget.initialPrompt!);
+      });
+    }
   }
 
   @override
@@ -160,7 +171,7 @@ class _AIChatSheetState extends State<_AIChatSheet> {
       return "There are ${priorities.length} priority patient(s): $formattedList.";
     }
     if (q.contains("doctors are available") || q.contains("doctor availability")) {
-      return "Dr. Priya Sharma (General Medicine) is currently marked Available in Consultation Room 102. Dr. Rajesh Verma (Cardiology) is in clinic today.";
+      return "CareFlow doctors on duty are marked Available in the consultation rooms. You can verify live status in the Doctor Schedule section.";
     }
     if (q.contains("register a patient")) {
       return "To register a patient, select 'Patient Registration' or 'Walk-in Patients' in your Receptionist sidebar. Enter their name, mobile, department, and priority to immediately generate their live queue token.";

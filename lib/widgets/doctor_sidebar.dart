@@ -193,6 +193,23 @@ class DoctorSidebar extends StatelessWidget {
                                   ),
                                 ),
                               ),
+                            if (index == 9) // Notifications badge
+                              Container(
+                                padding: const EdgeInsets.all(5),
+                                decoration: const BoxDecoration(
+                                  color: AppColors.error,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Text(
+                                  '2',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w800,
+                                    height: 1,
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                       ),
@@ -203,58 +220,166 @@ class DoctorSidebar extends StatelessWidget {
             ),
           ),
 
+          // ================= PROMO CARD (Better Care, Healthier Lives) =================
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFE0F2FE), Color(0xFFBAE6FD)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    height: 44,
+                    width: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF0284C7).withValues(alpha: 0.2),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.health_and_safety_rounded,
+                      color: Color(0xFF0284C7),
+                      size: 26,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Better Care,\nHealthier Lives',
+                          style: TextStyle(
+                            color: Color(0xFF0F172A),
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w800,
+                            height: 1.15,
+                          ),
+                        ),
+                        SizedBox(height: 3),
+                        Text(
+                          'Smarter Queues. Better Care.',
+                          style: TextStyle(
+                            color: Color(0xFF0369A1),
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
           const Divider(color: Color(0xFF1E293B), height: 1),
 
           // ================= DOCTOR PROFILE & LOGOUT =================
           Container(
-            padding: const EdgeInsets.all(16),
-            child: Row(
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                CircleAvatar(
-                  radius: 19,
-                  backgroundColor: AppColors.primary.withValues(alpha: 0.2),
-                  child: const Icon(
-                    Icons.medical_information_rounded,
-                    color: AppColors.primary,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        doctorName,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 17,
+                      backgroundColor: const Color(0xFF2563EB).withValues(alpha: 0.2),
+                      child: const Icon(
+                        Icons.person_rounded,
+                        color: Color(0xFF60A5FA),
+                        size: 20,
                       ),
-                      Text(
-                        specialization,
-                        style: const TextStyle(
-                          color: Color(0xFF94A3B8),
-                          fontSize: 11,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            doctorName,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12.5,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            specialization,
+                            style: const TextStyle(
+                              color: Color(0xFF94A3B8),
+                              fontSize: 10.5,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    const Icon(
+                      Icons.chevron_right_rounded,
+                      color: Color(0xFF64748B),
+                      size: 18,
+                    ),
+                  ],
                 ),
-                IconButton(
-                  tooltip: 'Logout',
-                  icon: const Icon(
-                    Icons.logout_rounded,
-                    color: Color(0xFF94A3B8),
-                    size: 19,
+                const SizedBox(height: 8),
+                InkWell(
+                  onTap: onLogout,
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEF4444).withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.logout_rounded,
+                          color: Color(0xFFF87171),
+                          size: 15,
+                        ),
+                        SizedBox(width: 6),
+                        Text(
+                          'Logout',
+                          style: TextStyle(
+                            color: Color(0xFFF87171),
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  onPressed: onLogout,
                 ),
               ],
             ),

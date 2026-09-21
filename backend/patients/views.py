@@ -260,12 +260,15 @@ class StaffQueueView(APIView):
             target_date = datetime.date.today()
 
         queryset = Appointment.objects.filter(appointment_date=target_date).select_related('patient', 'doctor__user', 'doctor__department')
-        doctor_id = request.query_params.get('doctor_id')
+        doctor_id = request.query_params.get('doctor_id') or request.query_params.get('doctor')
         if doctor_id:
             queryset = queryset.filter(doctor_id=doctor_id)
-        dept_id = request.query_params.get('department_id')
-        if dept_id:
-            queryset = queryset.filter(doctor__department_id=dept_id)
+        dept = request.query_params.get('department_id') or request.query_params.get('department')
+        if dept:
+            try:
+                queryset = queryset.filter(doctor__department_id=int(dept))
+            except (ValueError, TypeError):
+                queryset = queryset.filter(doctor__department__name__iexact=str(dept))
 
         serializer = AppointmentSerializer(queryset, many=True)
         return Response(serializer.data)

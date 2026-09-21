@@ -56,6 +56,11 @@ class VerificationService extends ChangeNotifier {
     );
   }
 
+  void setCurrentStaff(StaffApplication? staff) {
+    _currentStaff = staff;
+    notifyListeners();
+  }
+
   void logout() {
     _currentStaff = null;
     notifyListeners();

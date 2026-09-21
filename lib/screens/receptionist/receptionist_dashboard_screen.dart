@@ -1281,7 +1281,7 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
                     const SizedBox(width: 14),
                     Expanded(
                       child: DropdownButtonFormField<String>(
-                        value: _gender,
+                        initialValue: _gender,
                         decoration: const InputDecoration(labelText: 'Gender *'),
                         items: const [
                           DropdownMenuItem(value: 'Male', child: Text('Male')),
@@ -1324,7 +1324,7 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
                   children: [
                     Expanded(
                       child: DropdownButtonFormField<String>(
-                        value: _selectedDepartment ?? (widget.departments.isNotEmpty ? widget.departments.first['name'] : 'General Medicine'),
+                        initialValue: _selectedDepartment ?? (widget.departments.isNotEmpty ? widget.departments.first['name'] : 'General Medicine'),
                         decoration: const InputDecoration(labelText: 'Department *', prefixIcon: Icon(Icons.apartment_rounded)),
                         items: (widget.departments.isNotEmpty ? widget.departments : [
                           {'name': 'General Medicine'},
@@ -1337,7 +1337,7 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
                     const SizedBox(width: 14),
                     Expanded(
                       child: DropdownButtonFormField<int>(
-                        value: _selectedDoctorId ?? (widget.doctors.isNotEmpty ? widget.doctors.first['id'] as int : 1),
+                        initialValue: _selectedDoctorId ?? (widget.doctors.isNotEmpty ? widget.doctors.first['id'] as int : 1),
                         decoration: const InputDecoration(labelText: 'Doctor *', prefixIcon: Icon(Icons.medical_services_outlined)),
                         items: (widget.doctors.isNotEmpty ? widget.doctors : [
                           {'id': 1, 'name': 'Dr. Priya Sharma'},
@@ -1358,7 +1358,7 @@ class _PatientRegistrationFormState extends State<_PatientRegistrationForm> {
                 ),
                 const SizedBox(height: 14),
                 DropdownButtonFormField<String>(
-                  value: _priority,
+                  initialValue: _priority,
                   decoration: const InputDecoration(labelText: 'Triage Priority *'),
                   items: const [
                     DropdownMenuItem(value: 'Normal', child: Text('Normal Priority')),
@@ -1495,7 +1495,7 @@ class _GenerateTokenScreenState extends State<_GenerateTokenScreen> {
               ),
               const SizedBox(height: 14),
               DropdownButtonFormField<int>(
-                value: _doctorId ?? (widget.doctors.isNotEmpty ? widget.doctors.first['id'] as int : 1),
+                initialValue: _doctorId ?? (widget.doctors.isNotEmpty ? widget.doctors.first['id'] as int : 1),
                 decoration: const InputDecoration(labelText: 'Assigned Doctor *', prefixIcon: Icon(Icons.medical_services_outlined)),
                 items: (widget.doctors.isNotEmpty ? widget.doctors : [
                   {'id': 1, 'name': 'Dr. Priya Sharma (General Medicine)'},
@@ -1504,7 +1504,7 @@ class _GenerateTokenScreenState extends State<_GenerateTokenScreen> {
               ),
               const SizedBox(height: 14),
               DropdownButtonFormField<String>(
-                value: _priority,
+                initialValue: _priority,
                 decoration: const InputDecoration(labelText: 'Triage Priority *'),
                 items: const [
                   DropdownMenuItem(value: 'Normal', child: Text('Normal Priority')),
@@ -1688,7 +1688,7 @@ class _WalkInPatientsScreenState extends State<_WalkInPatientsScreen> {
               ),
               const SizedBox(height: 14),
               DropdownButtonFormField<int>(
-                value: _doctorId ?? (widget.doctors.isNotEmpty ? widget.doctors.first['id'] as int : 1),
+                initialValue: _doctorId ?? (widget.doctors.isNotEmpty ? widget.doctors.first['id'] as int : 1),
                 decoration: const InputDecoration(labelText: 'Assign Doctor *', prefixIcon: Icon(Icons.medical_services_outlined)),
                 items: (widget.doctors.isNotEmpty ? widget.doctors : [
                   {'id': 1, 'name': 'Dr. Priya Sharma (General Medicine)'},
@@ -1702,7 +1702,7 @@ class _WalkInPatientsScreenState extends State<_WalkInPatientsScreen> {
               ),
               const SizedBox(height: 14),
               DropdownButtonFormField<String>(
-                value: _priority,
+                initialValue: _priority,
                 decoration: const InputDecoration(labelText: 'Triage Priority *'),
                 items: const [
                   DropdownMenuItem(value: 'Normal', child: Text('Normal Priority')),

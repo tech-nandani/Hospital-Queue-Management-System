@@ -7,7 +7,8 @@ import '../queue/today_queue_screen.dart';
 import '../doctor/doctor_dashboard_screen.dart';
 
 class AddPatientScreen extends StatefulWidget {
-  const AddPatientScreen({super.key});
+  final int? doctorId;
+  const AddPatientScreen({super.key, this.doctorId});
 
   @override
   State<AddPatientScreen> createState() => _AddPatientScreenState();
@@ -53,19 +54,22 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
   // ADD PATIENT
   // ============================================================
 
-  void _addPatient() {
+  void _addPatient() async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    final patient = QueueService.instance.addPatient(
+    final patient = await QueueService.instance.addPatient(
       name: nameController.text.trim(),
       age: int.parse(ageController.text.trim()),
       gender: gender,
       phone: phoneController.text.trim(),
       reason: reasonController.text.trim(),
       priority: priority,
+      doctorId: widget.doctorId ?? 1,
     );
+
+    if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(

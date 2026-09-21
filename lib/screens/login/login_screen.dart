@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../doctor/doctor_register_screen.dart';
 import '../doctor/doctor_dashboard_screen.dart';
-import '../nurse/nurse_dashboard_screen.dart';
 import '../receptionist/receptionist_dashboard_screen.dart';
 import '../../models/staff_application.dart';
 import '../../services/verification_service.dart';
@@ -574,7 +573,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                   ],
-                );
+                ),
+              );
   }
 
   void _login() async {
