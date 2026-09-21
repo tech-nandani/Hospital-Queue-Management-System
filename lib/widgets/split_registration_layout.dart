@@ -19,7 +19,7 @@ class SplitRegistrationLayout extends StatelessWidget {
     required this.child,
     required this.leftVisual,
     this.mobileVisual,
-    this.maxFormWidth = 540,
+    this.maxFormWidth = 500,
   });
 
   @override
@@ -30,35 +30,25 @@ class SplitRegistrationLayout extends StatelessWidget {
 
         if (isWideScreen) {
           return Scaffold(
-            backgroundColor: const Color(0xFFF4F8FD),
-            body: Row(
+            backgroundColor: const Color(0xFF071A2D),
+            body: Stack(
               children: [
-                // ==========================================
-                // LEFT SIDE — HEALTHCARE ANIMATION (45%)
-                // ==========================================
-                Expanded(
-                  flex: 9,
-                  child: leftVisual,
-                ),
-
-                // ==========================================
-                // RIGHT SIDE — REGISTRATION FORM (55%)
-                // ==========================================
-                Expanded(
-                  flex: 11,
+                Positioned.fill(child: leftVisual),
+                Positioned.fill(
                   child: Container(
-                    height: double.infinity,
-                    color: const Color(0xFFF8FAFD),
-                    child: Center(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 40,
-                          vertical: 36,
-                        ),
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: maxFormWidth),
-                          child: child,
-                        ),
+                    color: const Color(0xFF071A2D).withValues(alpha: 0.42),
+                  ),
+                ),
+                SafeArea(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 36,
+                      ),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: maxFormWidth),
+                        child: child,
                       ),
                     ),
                   ),
@@ -76,15 +66,17 @@ class SplitRegistrationLayout extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  ?mobileVisual,
+                  if (mobileVisual != null) mobileVisual!,
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,
                       vertical: 24,
                     ),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: maxFormWidth),
-                      child: child,
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxWidth: maxFormWidth),
+                        child: child,
+                      ),
                     ),
                   ),
                 ],

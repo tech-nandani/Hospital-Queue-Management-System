@@ -46,77 +46,39 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isWideScreen = constraints.maxWidth >= 900;
-
-        if (isWideScreen) {
-          return Scaffold(
-            backgroundColor: const Color(0xFFF4F8FD),
-            body: Row(
-              children: [
-                // ==========================================
-                // LEFT SIDE — ADMIN LOGIN FORM (50%)
-                // ==========================================
-                Expanded(
-                  flex: 5,
-                  child: Container(
-                    height: double.infinity,
-                    color: const Color(0xFFF8FAFD),
-                    child: Center(
-                      child: SingleChildScrollView(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 48,
-                          vertical: 40,
-                        ),
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 460),
-                          child: _buildAdminForm(context),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-                // ==========================================
-                // RIGHT SIDE — ADMIN COMMAND VISUAL (50%)
-                // ==========================================
-                const Expanded(
-                  flex: 5,
-                  child: AdminCommandVisual(),
-                ),
-              ],
+    return Scaffold(
+      backgroundColor: const Color(0xFF071A2D),
+      body: Stack(
+        children: [
+          const Positioned.fill(
+            child: AdminCommandVisual(),
+          ),
+          Positioned.fill(
+            child: Container(
+              color: const Color(0xFF071A2D).withValues(alpha: 0.52),
             ),
-          );
-        }
-
-        // Mobile / Compact Layout
-        return Scaffold(
-          backgroundColor: const Color(0xFFF4F8FD),
-          body: SafeArea(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  // Compact top visual
-                  const AdminCommandVisual(isCompact: true, height: 210),
-
-                  // Form content
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 28,
+          ),
+          SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(22, 22, 22, 40),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: 500,
+                      minHeight: constraints.maxHeight - 40,
                     ),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 460),
+                    child: Align(
+                      alignment: Alignment.center,
                       child: _buildAdminForm(context),
                     ),
                   ),
-                ],
-              ),
+                );
+              },
             ),
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
@@ -125,102 +87,33 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // ==========================================
-        // CAREFLOW BRANDING & ADMIN BADGE
-        // ==========================================
-        Row(
-          children: [
-            Container(
-              height: 48,
-              width: 48,
-              decoration: BoxDecoration(
-                color: const Color(0xFFE5F5F0),
-                borderRadius: BorderRadius.circular(15),
-                border: Border.all(
-                  color: const Color(0xFF10B981).withValues(alpha: 0.35),
-                ),
-              ),
-              child: const Icon(
-                Icons.admin_panel_settings_rounded,
-                color: Color(0xFF16806A),
-                size: 27,
-              ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.9),
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.4)),
             ),
-            const SizedBox(width: 14),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'CareFlow',
-                  style: TextStyle(
-                    color: Color(0xFF16324F),
-                    fontSize: 20,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE5F5F0),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Text(
-                    'ADMIN PORTAL',
-                    style: TextStyle(
-                      color: Color(0xFF16806A),
-                      fontSize: 9.5,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.9,
-                    ),
-                  ),
-                ),
-              ],
+            child: IconButton(
+              onPressed: () => Navigator.maybePop(context),
+              tooltip: 'Back',
+              icon: const Icon(Icons.arrow_back_rounded, color: Color(0xFF0F2740)),
             ),
-          ],
-        ),
-
-        const SizedBox(height: 32),
-
-        // ==========================================
-        // HEADING & SUPPORTING TEXT
-        // ==========================================
-        const Text(
-          'Welcome back, Admin',
-          style: TextStyle(
-            color: Color(0xFF16324F),
-            fontSize: 27,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.3,
           ),
         ),
-        const SizedBox(height: 6),
-        const Text(
-          'Sign in to securely manage hospital operations.',
-          style: TextStyle(
-            color: Color(0xFF718096),
-            fontSize: 14,
-            height: 1.4,
-          ),
-        ),
-
-        const SizedBox(height: 28),
-
-        // ==========================================
-        // LOGIN CARD CONTAINER
-        // ==========================================
+        const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: const Color(0xFFE2EAF3)),
+            color: Colors.white.withValues(alpha: 0.97),
+            borderRadius: BorderRadius.circular(28),
+            border: Border.all(color: const Color(0xFFB8D2FF), width: 1.2),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
+                color: Colors.black.withValues(alpha: 0.18),
+                blurRadius: 26,
+                offset: const Offset(0, 18),
               ),
             ],
           ),
@@ -228,18 +121,84 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Admin Email Label
+                Center(
+                  child: Container(
+                    height: 72,
+                    width: 72,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEAF3FF),
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    child: const Icon(
+                      Icons.admin_panel_settings_rounded,
+                      color: Color(0xFF0F2740),
+                      size: 32,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 18),
+                const Center(
+                  child: Text(
+                    'CareFlow',
+                    style: TextStyle(
+                      color: Color(0xFF0F2740),
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFEAF3FF),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: const Text(
+                    'ADMIN PORTAL',
+                    style: TextStyle(
+                      color: Color(0xFF0F2740),
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 22),
+                const Center(
+                  child: Text(
+                    'Welcome back, Admin',
+                    style: TextStyle(
+                      color: Color(0xFF0F2740),
+                      fontSize: 27,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Center(
+                  child: Text(
+                    'Sign in to securely manage hospital operations.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Color(0xFF5C738F),
+                      fontSize: 14,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 26),
                 const Text(
                   'Admin email',
                   style: TextStyle(
-                    color: Color(0xFF34495E),
+                    color: Color(0xFF1E3352),
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 8),
-
-                // Admin Email Field
                 TextField(
                   controller: emailController,
                   keyboardType: TextInputType.emailAddress,
@@ -248,36 +207,50 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                     AutofillHints.username,
                   ],
                   textInputAction: TextInputAction.next,
+                  style: const TextStyle(
+                    color: Color(0xFF0F2740),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
                   decoration: _input(
                     'Enter admin email',
                     Icons.email_outlined,
+                  ).copyWith(
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF7A8CA3),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
-
                 const SizedBox(height: 18),
-
-                // Password Label
                 const Text(
                   'Password',
                   style: TextStyle(
-                    color: Color(0xFF34495E),
+                    color: Color(0xFF1E3352),
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 const SizedBox(height: 8),
-
-                // Password Field
                 TextField(
                   controller: passwordController,
                   obscureText: obscurePassword,
                   autofillHints: const [AutofillHints.password],
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) => _signIn(),
+                  style: const TextStyle(
+                    color: Color(0xFF0F2740),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
                   decoration: _input(
                     'Enter password',
                     Icons.lock_outline_rounded,
                   ).copyWith(
+                    hintStyle: const TextStyle(
+                      color: Color(0xFF7A8CA3),
+                      fontWeight: FontWeight.w500,
+                    ),
                     suffixIcon: IconButton(
                       onPressed: () => setState(
                         () => obscurePassword = !obscurePassword,
@@ -286,16 +259,13 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                         obscurePassword
                             ? Icons.visibility_outlined
                             : Icons.visibility_off_outlined,
-                        color: const Color(0xFF718096),
+                        color: const Color(0xFF5C738F),
                         size: 20,
                       ),
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 24),
-
-                // Secure Sign In Button
                 SizedBox(
                   width: double.infinity,
                   height: 52,
@@ -311,7 +281,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF16806A),
+                      backgroundColor: const Color(0xFF0F2740),
                       foregroundColor: Colors.white,
                       elevation: 1,
                       shape: RoundedRectangleBorder(
@@ -324,19 +294,14 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
             ),
           ),
         ),
-
         const SizedBox(height: 20),
-
-        // ==========================================
-        // SECURITY TRUST INDICATOR
-        // ==========================================
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: const [
             Icon(
               Icons.shield_outlined,
-              color: Color(0xFF16806A),
+              color: Color(0xFF0F2740),
               size: 16,
             ),
             SizedBox(width: 7),
@@ -344,7 +309,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
               child: Text(
                 'Protected administrator access • 256-Bit Secure',
                 style: TextStyle(
-                  color: Color(0xFF718096),
+                  color: Color(0xFF5C738F),
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -362,7 +327,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
     return InputDecoration(
       hintText: hint,
       hintStyle: const TextStyle(color: Color(0xFFA0AEC0), fontSize: 14),
-      prefixIcon: Icon(icon, color: const Color(0xFF16806A), size: 20),
+      prefixIcon: Icon(icon, color: const Color(0xFF0F2740), size: 20),
       filled: true,
       fillColor: const Color(0xFFF8FAFD),
       contentPadding: const EdgeInsets.symmetric(
@@ -379,7 +344,7 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFF16806A), width: 1.5),
+        borderSide: const BorderSide(color: Color(0xFF3D7BFF), width: 1.5),
       ),
     );
   }

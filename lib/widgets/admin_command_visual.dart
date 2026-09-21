@@ -697,8 +697,8 @@ class _AdminCommandVisualState extends State<AdminCommandVisual>
   // ==========================================
   Widget _buildBottomAuditBar() {
     return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: 20),
+      constraints: const BoxConstraints(minHeight: 48),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       decoration: BoxDecoration(
         color: const Color(0xFF051322).withValues(alpha: 0.96),
         border: Border(
@@ -708,48 +708,62 @@ class _AdminCommandVisualState extends State<AdminCommandVisual>
           ),
         ),
       ),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 280;
+          return Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            runSpacing: 6,
+            spacing: 12,
             children: [
-              Icon(
-                Icons.verified_user_rounded,
-                color: Color(0xFF34D399),
-                size: 15,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.verified_user_rounded,
+                    color: Color(0xFF34D399),
+                    size: 15,
+                  ),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      'ADMINISTRATIVE CONTROL CONSOLE',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF94A3B8),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.7,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              SizedBox(width: 8),
-              Text(
-                'ADMINISTRATIVE CONTROL CONSOLE',
-                style: TextStyle(
-                  color: Color(0xFF94A3B8),
-                  fontSize: 9,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.7,
-                ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.lock_rounded,
+                    color: Color(0xFF10B981),
+                    size: 13,
+                  ),
+                  const SizedBox(width: 5),
+                  Text(
+                    compact ? 'RESTRICTED' : 'SYSTEM RESTRICTED',
+                    style: const TextStyle(
+                      color: Color(0xFF34D399),
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ],
               ),
             ],
-          ),
-          Row(
-            children: [
-              Icon(
-                Icons.lock_rounded,
-                color: Color(0xFF10B981),
-                size: 13,
-              ),
-              SizedBox(width: 5),
-              Text(
-                'SYSTEM RESTRICTED',
-                style: TextStyle(
-                  color: Color(0xFF34D399),
-                  fontSize: 8.5,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
