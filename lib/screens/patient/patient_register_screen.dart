@@ -127,7 +127,7 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                 const Text(
                   'CareFlow',
                   style: TextStyle(
-                    color: Color(0xFF16324F),
+                    color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.2,
@@ -137,13 +137,13 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE8F2FF),
+                    color: const Color(0xFF1E3A8A),
                     borderRadius: BorderRadius.circular(5),
                   ),
                   child: const Text(
                     'PATIENT PORTAL',
                     style: TextStyle(
-                      color: Color(0xFF1976D2),
+                      color: Color(0xFF60A5FA),
                       fontSize: 8.5,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.8,
@@ -163,7 +163,7 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
         const Text(
           'Create Patient Account',
           style: TextStyle(
-            color: Color(0xFF16324F),
+            color: Colors.white,
             fontSize: 27,
             fontWeight: FontWeight.w800,
             letterSpacing: -0.3,
@@ -173,7 +173,7 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
         const Text(
           'Create your patient account to manage appointments and visits.',
           style: TextStyle(
-            color: Color(0xFF718096),
+            color: Color(0xFF94A3B8),
             fontSize: 14,
             height: 1.4,
           ),
@@ -207,6 +207,12 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: nameController,
+                  style: const TextStyle(
+                    color: Color(0xFF0F2740),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  cursorColor: const Color(0xFF1976D2),
                   keyboardType: TextInputType.name,
                   autofillHints: const [AutofillHints.name],
                   textInputAction: TextInputAction.next,
@@ -223,6 +229,12 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: emailController,
+                  style: const TextStyle(
+                    color: Color(0xFF0F2740),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  cursorColor: const Color(0xFF1976D2),
                   keyboardType: TextInputType.emailAddress,
                   autofillHints: const [AutofillHints.email],
                   textInputAction: TextInputAction.next,
@@ -239,6 +251,12 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: mobileController,
+                  style: const TextStyle(
+                    color: Color(0xFF0F2740),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  cursorColor: const Color(0xFF1976D2),
                   keyboardType: TextInputType.phone,
                   autofillHints: const [AutofillHints.telephoneNumber],
                   textInputAction: TextInputAction.next,
@@ -256,6 +274,12 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                 DropdownButtonFormField<String>(
                   initialValue: selectedGender,
                   isExpanded: true,
+                  dropdownColor: Colors.white,
+                  style: const TextStyle(
+                    color: Color(0xFF0F2740),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                   hint: const Text(
                     'Select gender',
                     style: TextStyle(color: Color(0xFFA0AEC0), fontSize: 14),
@@ -269,9 +293,39 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                     color: Color(0xFF718096),
                   ),
                   items: const [
-                    DropdownMenuItem(value: 'Male', child: Text('Male')),
-                    DropdownMenuItem(value: 'Female', child: Text('Female')),
-                    DropdownMenuItem(value: 'Other', child: Text('Other')),
+                    DropdownMenuItem(
+                      value: 'Male',
+                      child: Text(
+                        'Male',
+                        style: TextStyle(
+                          color: Color(0xFF0F2740),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Female',
+                      child: Text(
+                        'Female',
+                        style: TextStyle(
+                          color: Color(0xFF0F2740),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Other',
+                      child: Text(
+                        'Other',
+                        style: TextStyle(
+                          color: Color(0xFF0F2740),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
                   ],
                   onChanged: (value) {
                     setState(() {
@@ -291,6 +345,11 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                   child: IgnorePointer(
                     child: TextField(
                       controller: dobController,
+                      style: const TextStyle(
+                        color: Color(0xFF0F2740),
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
                       decoration: _inputDecoration(
                         hint: 'Select date of birth (YYYY-MM-DD)',
                         icon: Icons.calendar_month_outlined,
@@ -311,6 +370,12 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: passwordController,
+                  style: const TextStyle(
+                    color: Color(0xFF0F2740),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  cursorColor: const Color(0xFF1976D2),
                   obscureText: !isPasswordVisible,
                   autofillHints: const [AutofillHints.newPassword],
                   textInputAction: TextInputAction.next,
@@ -339,6 +404,12 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: confirmPasswordController,
+                  style: const TextStyle(
+                    color: Color(0xFF0F2740),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  cursorColor: const Color(0xFF1976D2),
                   obscureText: !isConfirmPasswordVisible,
                   autofillHints: const [AutofillHints.newPassword],
                   textInputAction: TextInputAction.done,
@@ -656,7 +727,7 @@ class _PatientRegisterScreenState extends State<PatientRegisterScreen> {
       prefixIcon: Icon(icon, color: const Color(0xFF1976D2), size: 20),
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: const Color(0xFFF8FAFD),
+      fillColor: Colors.white,
       contentPadding: const EdgeInsets.symmetric(
         vertical: 16,
         horizontal: 16,

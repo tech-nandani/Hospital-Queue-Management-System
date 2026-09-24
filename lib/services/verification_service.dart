@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import '../models/staff_application.dart';
 import 'patient_api_service.dart';
+import 'storage/staff_storage.dart';
 
 class VerificationService extends ChangeNotifier {
   VerificationService._() {
@@ -19,10 +20,12 @@ class VerificationService extends ChangeNotifier {
   StaffApplication? get currentStaff => _currentStaff;
 
   void _seedDefaultStaff() {
-    // Seed Dr. Priya Sharma (matches backend seed)
+    _applications.clear();
+
+    // 1. Seed Dr. Priya Sharma - Doctor (matches backend seed)
     _applications.add(
       StaffApplication(
-        id: '1',
+        id: 'fixed_staff_1',
         name: 'Dr. Priya Sharma',
         email: 'priya.sharma@hospital.org',
         mobile: '9876543210',
@@ -37,10 +40,10 @@ class VerificationService extends ChangeNotifier {
       ),
     );
 
-    // Seed Sunita Rao - Receptionist (matches backend seed)
+    // 2. Seed Sunita Rao - Receptionist (matches backend seed)
     _applications.add(
       StaffApplication(
-        id: '2',
+        id: 'fixed_staff_2',
         name: 'Sunita Rao',
         email: 'receptionist@hospital.org',
         mobile: '9876543220',
@@ -54,6 +57,64 @@ class VerificationService extends ChangeNotifier {
         status: StaffApplicationStatus.approved,
       ),
     );
+
+    // Re-hydrate registered staff from persistent storage
+    _loadFromStorage();
+  }
+
+  void _loadFromStorage() {
+    try {
+      final savedList = StaffStorage.loadApplications();
+      for (final item in savedList) {
+        final app = StaffApplication.fromJson(item);
+        // Skip default fixed seeds to keep them canonical
+        if (app.email.toLowerCase() == 'priya.sharma@hospital.org' ||
+            app.email.toLowerCase() == 'receptionist@hospital.org') {
+          continue;
+        }
+        // Filter out legacy hardcoded duplicate seed if present in browser localStorage
+        if (app.email.toLowerCase() == 'priyasharma@gmail.com' &&
+            app.name == 'Dr. Priya Sharma' &&
+            (app.id == '1' || app.id == 'fixed_staff_1')) {
+          continue;
+        }
+        final existingIdx = _applications.indexWhere(
+          (a) => a.email.toLowerCase() == app.email.toLowerCase(),
+        );
+        if (existingIdx != -1) {
+          _applications[existingIdx] = app;
+        } else {
+          _applications.add(app);
+        }
+      }
+      final emails = StaffStorage.loadRememberedEmails();
+      rememberedEmail = emails['rememberedEmail'] ?? rememberedEmail;
+      rememberedDoctorEmail =
+          emails['rememberedDoctorEmail'] ?? rememberedDoctorEmail;
+      rememberedReceptionistEmail =
+          emails['rememberedReceptionistEmail'] ?? rememberedReceptionistEmail;
+    } catch (e) {
+      debugPrint('Error loading staff from storage: $e');
+    }
+  }
+
+  void refreshFromStorage() {
+    _loadFromStorage();
+    notifyListeners();
+  }
+
+  void _saveToStorage() {
+    try {
+      final data = _applications.map((a) => a.toJson()).toList();
+      StaffStorage.saveApplications(data);
+      StaffStorage.saveRememberedEmails({
+        'rememberedEmail': rememberedEmail,
+        'rememberedDoctorEmail': rememberedDoctorEmail,
+        'rememberedReceptionistEmail': rememberedReceptionistEmail,
+      });
+    } catch (e) {
+      debugPrint('Error saving staff to storage: $e');
+    }
   }
 
   void setCurrentStaff(StaffApplication? staff) {
@@ -66,7 +127,7 @@ class VerificationService extends ChangeNotifier {
     notifyListeners();
   }
 
-  StaffApplication submitApplication({
+  Future<StaffApplication> submitApplication({
     required String name,
     required String email,
     required String mobile,
@@ -77,10 +138,13 @@ class VerificationService extends ChangeNotifier {
     required String degreeCertificate,
     required String identityProof,
     required String registrationCertificate,
+    String? hospitalName,
+    String? city,
     Uint8List? degreeCertificateBytes,
     Uint8List? identityProofBytes,
     Uint8List? registrationCertificateBytes,
-  }) {
+    StaffApplicationStatus status = StaffApplicationStatus.pending,
+  }) async {
     final cleanEmail = email.trim();
     rememberedEmail = cleanEmail;
     if (role == 'Doctor') {
@@ -89,10 +153,13 @@ class VerificationService extends ChangeNotifier {
       rememberedReceptionistEmail = cleanEmail;
     }
 
+    final uniqueId =
+        'staff_${DateTime.now().microsecondsSinceEpoch}_${cleanEmail.hashCode.abs()}';
+
     final application = StaffApplication(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      id: uniqueId,
       name: name,
-      email: email,
+      email: cleanEmail,
       mobile: mobile,
       password: password,
       role: role,
@@ -101,17 +168,82 @@ class VerificationService extends ChangeNotifier {
       degreeCertificate: degreeCertificate,
       identityProof: identityProof,
       registrationCertificate: registrationCertificate,
+      hospitalName: hospitalName ?? '',
+      city: city ?? '',
       degreeCertificateBytes: degreeCertificateBytes,
       identityProofBytes: identityProofBytes,
       registrationCertificateBytes: registrationCertificateBytes,
+      status: status,
     );
 
-    _applications.add(application);
+    final existingIndex = _applications.indexWhere(
+      (a) => a.email.toLowerCase() == cleanEmail.toLowerCase(),
+    );
+    if (existingIndex != -1) {
+      _applications[existingIndex] = application;
+    } else {
+      _applications.add(application);
+    }
+    _saveToStorage();
     notifyListeners();
+
+    // Call backend API to persist registration in SQLite database
+    try {
+      final res = await PatientApiService.instance.staffRegister(
+        name: name,
+        email: cleanEmail,
+        password: password,
+        role: role,
+        department: department,
+        mobile: mobile,
+        medicalLicenseNumber: medicalLicenseNumber,
+        hospitalName: hospitalName,
+        city: city,
+      );
+
+      final staffMap =
+          (res['staff'] ?? res['user']) as Map<String, dynamic>?;
+      if (staffMap != null && staffMap['id'] != null) {
+        final updatedApp = StaffApplication(
+          id: uniqueId,
+          name: staffMap['name']?.toString() ?? name,
+          email: cleanEmail,
+          mobile: mobile,
+          password: password,
+          role: staffMap['role']?.toString() ?? role,
+          department: staffMap['department']?.toString() ?? department,
+          medicalLicenseNumber: medicalLicenseNumber,
+          degreeCertificate: degreeCertificate,
+          identityProof: identityProof,
+          registrationCertificate: registrationCertificate,
+          hospitalName: staffMap['hospital_name']?.toString() ?? hospitalName ?? '',
+          city: staffMap['city']?.toString() ?? city ?? '',
+          degreeCertificateBytes: degreeCertificateBytes,
+          identityProofBytes: identityProofBytes,
+          registrationCertificateBytes: registrationCertificateBytes,
+          status: status,
+        );
+        final updateIndex = _applications.indexWhere(
+          (a) => a.email.toLowerCase() == cleanEmail.toLowerCase(),
+        );
+        if (updateIndex != -1) {
+          _applications[updateIndex] = updatedApp;
+        } else {
+          _applications.add(updatedApp);
+        }
+        _saveToStorage();
+        notifyListeners();
+        return updatedApp;
+      }
+    } catch (e) {
+      debugPrint('Backend staff register note: $e');
+    }
+
     return application;
   }
 
   StaffApplication? findByLogin(String identifier) {
+    _loadFromStorage();
     final normalizedIdentifier = identifier.trim().toLowerCase();
     for (final application in _applications) {
       if (application.email.toLowerCase() == normalizedIdentifier ||
@@ -122,10 +254,16 @@ class VerificationService extends ChangeNotifier {
     return null;
   }
 
-  Future<StaffApplication?> authenticateAsync(String identifier, String password) async {
+  Future<StaffApplication?> authenticateAsync(
+    String identifier,
+    String password,
+  ) async {
     final clean = identifier.trim();
     final local = authenticate(clean, password);
-    if (local != null) return local;
+    if (local != null) {
+      _saveToStorage();
+      return local;
+    }
 
     // Try backend authentication
     try {
@@ -134,15 +272,19 @@ class VerificationService extends ChangeNotifier {
         password: password,
       );
 
-      final userObj = res['user'] as Map<String, dynamic>?;
+      final userObj =
+          (res['staff'] ?? res['user']) as Map<String, dynamic>?;
       final staffApp = StaffApplication(
         id: userObj?['id']?.toString() ?? '1',
-        name: userObj?['name']?.toString() ?? (clean.contains('priya') ? 'Dr. Priya Sharma' : 'Staff Member'),
+        name: userObj?['name']?.toString() ??
+            (clean.contains('priya') ? 'Dr. Priya Sharma' : 'Staff Member'),
         email: clean,
         mobile: userObj?['mobile']?.toString() ?? '',
         password: password,
-        role: userObj?['role']?.toString() ?? (clean.contains('priya') ? 'Doctor' : 'Receptionist'),
-        department: userObj?['department']?.toString() ?? 'General Medicine',
+        role: userObj?['role']?.toString() ??
+            (clean.contains('priya') ? 'Doctor' : 'Receptionist'),
+        department:
+            userObj?['department']?.toString() ?? 'General Medicine',
         medicalLicenseNumber: 'VERIFIED',
         degreeCertificate: 'degree.pdf',
         identityProof: 'id.pdf',
@@ -150,10 +292,18 @@ class VerificationService extends ChangeNotifier {
         status: StaffApplicationStatus.approved,
       );
 
-      _applications.removeWhere((a) => a.email.toLowerCase() == clean.toLowerCase());
+      _applications.removeWhere(
+        (a) => a.email.toLowerCase() == clean.toLowerCase(),
+      );
       _applications.add(staffApp);
       _currentStaff = staffApp;
       rememberedEmail = clean;
+      if (staffApp.role == 'Doctor') {
+        rememberedDoctorEmail = clean;
+      } else {
+        rememberedReceptionistEmail = clean;
+      }
+      _saveToStorage();
       notifyListeners();
       return staffApp;
     } catch (e) {
@@ -174,6 +324,7 @@ class VerificationService extends ChangeNotifier {
       rememberedReceptionistEmail = clean;
     }
     _currentStaff = application;
+    _saveToStorage();
     notifyListeners();
     return application;
   }
@@ -200,6 +351,7 @@ class VerificationService extends ChangeNotifier {
     if (application == null) return;
 
     application.status = status;
+    _saveToStorage();
     notifyListeners();
   }
 }

@@ -189,6 +189,7 @@ class _ReceptionistDashboardScreenState extends State<ReceptionistDashboardScree
                   height: 42,
                   child: TextField(
                     onChanged: (v) => setState(() => _searchQuery = v),
+                    style: const TextStyle(fontSize: 13.5, color: AppColors.mainText, fontWeight: FontWeight.w600),
                     decoration: InputDecoration(
                       hintText: 'Search patient name, token, mobile...',
                       hintStyle: const TextStyle(fontSize: 13, color: AppColors.secondaryText),
@@ -715,7 +716,7 @@ class _ReceptionistDashboardScreenState extends State<ReceptionistDashboardScree
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                            Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.mainText)),
                             Text('Dept: ${p.department} • Doctor: ${p.doctorName} • Time: ${p.time}', style: const TextStyle(fontSize: 12, color: AppColors.secondaryText)),
                           ],
                         ),
@@ -793,7 +794,7 @@ class _ReceptionistDashboardScreenState extends State<ReceptionistDashboardScree
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(doc['name'] ?? 'Doctor', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                                  Text(doc['name'] ?? 'Doctor', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: AppColors.mainText)),
                                   Text(doc['specialization'] ?? 'General Medicine', style: const TextStyle(fontSize: 11, color: AppColors.secondaryText)),
                                 ],
                               ),
@@ -856,8 +857,8 @@ class _ReceptionistDashboardScreenState extends State<ReceptionistDashboardScree
                     backgroundColor: AppColors.secondaryLight,
                     child: Text(p.name.substring(0, 1).toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.secondary)),
                   ),
-                  title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700)),
-                  subtitle: Text('Mobile: ${p.phone.isEmpty ? "N/A" : p.phone} • Age: ${p.age} • Gender: ${p.gender} • Dept: ${p.department}'),
+                  title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.mainText)),
+                  subtitle: Text('Mobile: ${p.phone.isEmpty ? "N/A" : p.phone} • Age: ${p.age} • Gender: ${p.gender} • Dept: ${p.department}', style: const TextStyle(color: AppColors.secondaryText, fontSize: 12)),
                   trailing: OutlinedButton(
                     onPressed: () => _viewPatientDetails(p),
                     child: const Text('View Record'),
@@ -896,8 +897,8 @@ class _ReceptionistDashboardScreenState extends State<ReceptionistDashboardScree
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppColors.border)),
                 child: ListTile(
                   leading: const Icon(Icons.apartment_rounded, color: AppColors.primary),
-                  title: Text(d['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.w700)),
-                  subtitle: Text(d['description'] ?? 'Consultation, Outpatient & Inpatient care'),
+                  title: Text(d['name'] ?? '', style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.mainText)),
+                  subtitle: Text(d['description'] ?? 'Consultation, Outpatient & Inpatient care', style: const TextStyle(color: AppColors.secondaryText, fontSize: 12)),
                 ),
               )),
       ],
@@ -914,8 +915,8 @@ class _ReceptionistDashboardScreenState extends State<ReceptionistDashboardScree
           tileColor: Colors.white,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppColors.border)),
           leading: const Icon(Icons.check_circle_rounded, color: AppColors.success),
-          title: const Text('Live Queue Synchronization Active'),
-          subtitle: const Text('All token additions and doctor status transitions update automatically.'),
+          title: const Text('Live Queue Synchronization Active', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.mainText)),
+          subtitle: const Text('All token additions and doctor status transitions update automatically.', style: TextStyle(color: AppColors.secondaryText, fontSize: 12)),
         ),
       ],
     );
@@ -934,15 +935,15 @@ class _ReceptionistDashboardScreenState extends State<ReceptionistDashboardScree
           child: Column(
             children: [
               SwitchListTile(
-                title: const Text('Auto-print Token Slip', style: TextStyle(fontWeight: FontWeight.w700)),
-                subtitle: const Text('Send token directly to receipt printer on registration'),
+                title: const Text('Auto-print Token Slip', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.mainText)),
+                subtitle: const Text('Send token directly to receipt printer on registration', style: TextStyle(color: AppColors.secondaryText, fontSize: 12)),
                 value: false,
                 onChanged: (v) {},
               ),
               const Divider(height: 1, color: AppColors.border),
               SwitchListTile(
-                title: const Text('SMS Notification to Patient', style: TextStyle(fontWeight: FontWeight.w700)),
-                subtitle: const Text('Send SMS with token and estimated waiting time'),
+                title: const Text('SMS Notification to Patient', style: TextStyle(fontWeight: FontWeight.w700, color: AppColors.mainText)),
+                subtitle: const Text('Send SMS with token and estimated waiting time', style: TextStyle(color: AppColors.secondaryText, fontSize: 12)),
                 value: true,
                 onChanged: (v) {},
               ),
@@ -969,8 +970,8 @@ class _ReceptionistDashboardScreenState extends State<ReceptionistDashboardScree
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Cancel Appointment / Token?', style: TextStyle(fontWeight: FontWeight.w800)),
-        content: Text('Are you sure you want to cancel the queue token for ${p.name}? This will update status to Cancelled without deleting records.'),
+        title: const Text('Cancel Appointment / Token?', style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.mainText)),
+        content: Text('Are you sure you want to cancel the queue token for ${p.name}? This will update status to Cancelled without deleting records.', style: const TextStyle(color: AppColors.mainText)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('No, Keep')),
           FilledButton(
@@ -993,8 +994,8 @@ class _ReceptionistDashboardScreenState extends State<ReceptionistDashboardScree
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Reschedule Appointment', style: TextStyle(fontWeight: FontWeight.w800)),
-        content: Text('Rescheduling for ${p.name}. Please select a new slot.'),
+        title: const Text('Reschedule Appointment', style: TextStyle(fontWeight: FontWeight.w800, color: AppColors.mainText)),
+        content: Text('Rescheduling for ${p.name}. Please select a new slot.', style: const TextStyle(color: AppColors.mainText)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           FilledButton(
@@ -1015,7 +1016,7 @@ class _ReceptionistDashboardScreenState extends State<ReceptionistDashboardScree
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w800)),
+        title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.mainText)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1544,8 +1545,8 @@ class _GenerateTokenScreenState extends State<_GenerateTokenScreen> {
           const SizedBox(height: 8),
           const Text('Token Generated Successfully', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.secondary)),
           const SizedBox(height: 16),
-          Text('#${p.token}', style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w900, color: AppColors.mainText)),
-          Text('Patient: ${p.name}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
+          Text('#${p.token}', style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w900, color: AppColors.secondary)),
+          Text('Patient: ${p.name}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.mainText)),
           Text('Doctor: ${p.doctorName} (${p.department})', style: const TextStyle(fontSize: 13, color: AppColors.secondaryText)),
           const SizedBox(height: 12),
           Container(

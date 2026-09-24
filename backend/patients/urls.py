@@ -13,6 +13,7 @@ from .views import (
     NotificationViewSet,
     RegisterView,
     StaffLoginView,
+    StaffRegisterView,
     StaffQueueView,
 )
 
@@ -27,6 +28,7 @@ urlpatterns = [
     path('auth/login/', LoginView.as_view(), name='login'),
     path('auth/google/', GoogleLoginView.as_view(), name='google-login'),
     path('auth/staff-login/', StaffLoginView.as_view(), name='staff-login'),
+    path('auth/staff-register/', StaffRegisterView.as_view(), name='staff-register'),
     path('staff/queue/', StaffQueueView.as_view(), name='staff-queue'),
     path('staff/generate-token/', StaffQueueView.as_view(), name='staff-generate-token'),
     path('staff/doctor-availability/', DoctorAvailabilityView.as_view(), name='doctor-availability'),

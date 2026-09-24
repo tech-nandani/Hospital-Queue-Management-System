@@ -48,36 +48,83 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF071A2D),
-      body: Stack(
-        children: [
-          const Positioned.fill(
-            child: AdminCommandVisual(),
-          ),
-          Positioned.fill(
-            child: Container(
-              color: const Color(0xFF071A2D).withValues(alpha: 0.52),
-            ),
-          ),
-          SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(22, 22, 22, 40),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: 500,
-                      minHeight: constraints.maxHeight - 40,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 850;
+
+          if (isWide) {
+            return Row(
+              children: [
+                // ==========================================
+                // LEFT SIDE — ADMIN LOGIN FORM
+                // ==========================================
+                Expanded(
+                  flex: 5,
+                  child: Container(
+                    height: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF071A2D),
+                      border: Border(
+                        right: BorderSide(
+                          color: Color(0xFF162D4A),
+                          width: 1.5,
+                        ),
+                      ),
                     ),
-                    child: Align(
-                      alignment: Alignment.center,
-                      child: _buildAdminForm(context),
+                    child: SafeArea(
+                      child: Center(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 28,
+                            vertical: 24,
+                          ),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 500),
+                            child: _buildAdminForm(context),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                );
-              },
+                ),
+
+                // ==========================================
+                // RIGHT SIDE — ADMIN COMMAND VISUAL
+                // ==========================================
+                const Expanded(
+                  flex: 6,
+                  child: AdminCommandVisual(),
+                ),
+              ],
+            );
+          }
+
+          // Compact / Mobile Layout: Top Visual + Scrollable Form
+          return SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(
+                    height: 240,
+                    child: AdminCommandVisual(),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 20,
+                    ),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 500),
+                        child: _buildAdminForm(context),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

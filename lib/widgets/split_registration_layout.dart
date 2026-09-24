@@ -31,27 +31,47 @@ class SplitRegistrationLayout extends StatelessWidget {
         if (isWideScreen) {
           return Scaffold(
             backgroundColor: const Color(0xFF071A2D),
-            body: Stack(
+            body: Row(
               children: [
-                Positioned.fill(child: leftVisual),
-                Positioned.fill(
+                // ==========================================
+                // LEFT SIDE — REGISTRATION FORM
+                // ==========================================
+                Expanded(
+                  flex: 5,
                   child: Container(
-                    color: const Color(0xFF071A2D).withValues(alpha: 0.42),
-                  ),
-                ),
-                SafeArea(
-                  child: Center(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 36,
+                    height: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF071A2D),
+                      border: Border(
+                        right: BorderSide(
+                          color: Color(0xFF162D4A),
+                          width: 1.5,
+                        ),
                       ),
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: maxFormWidth),
-                        child: child,
+                    ),
+                    child: SafeArea(
+                      child: Center(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 28,
+                            vertical: 28,
+                          ),
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(maxWidth: maxFormWidth),
+                            child: child,
+                          ),
+                        ),
                       ),
                     ),
                   ),
+                ),
+
+                // ==========================================
+                // RIGHT SIDE — ANIMATION VISUAL
+                // ==========================================
+                Expanded(
+                  flex: 6,
+                  child: leftVisual,
                 ),
               ],
             ),
@@ -60,13 +80,13 @@ class SplitRegistrationLayout extends StatelessWidget {
 
         // Mobile / Compact Layout
         return Scaffold(
-          backgroundColor: const Color(0xFFF4F8FD),
+          backgroundColor: const Color(0xFF071A2D),
           body: SafeArea(
             child: SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (mobileVisual != null) mobileVisual!,
+                  ?mobileVisual,
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 20,

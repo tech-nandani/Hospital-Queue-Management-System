@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../models/queue_patient.dart';
 import '../../models/staff_application.dart';
 import '../../services/queue_service.dart';
 import '../../services/verification_service.dart';
@@ -16,10 +17,33 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   final queueService = QueueService.instance;
   final verificationService = VerificationService.instance;
   int selectedIndex = 0;
+  String _patientFilter = 'All';
+
+  void _navigateToPatients([String filter = 'All']) {
+    setState(() {
+      selectedIndex = 2;
+      _patientFilter = filter;
+    });
+  }
+
+  void _navigateToStaff() {
+    verificationService.refreshFromStorage();
+    setState(() {
+      selectedIndex = 1;
+    });
+  }
+
+  void _setTabIndex(int index) {
+    if (index == 1) {
+      verificationService.refreshFromStorage();
+    }
+    setState(() => selectedIndex = index);
+  }
 
   @override
   void initState() {
     super.initState();
+    verificationService.refreshFromStorage();
     queueService.addListener(_refresh);
     verificationService.addListener(_refresh);
   }
@@ -73,7 +97,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           if (desktop)
             _AdminSideRail(
               selectedIndex: selectedIndex,
-              onSelected: (index) => setState(() => selectedIndex = index),
+              onSelected: _setTabIndex,
             ),
           Expanded(
             child: IndexedStack(
@@ -82,8 +106,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 _OverviewTab(
                   queueService: queueService,
                   verificationService: verificationService,
-                  onOpenApprovals: () => setState(() => selectedIndex = 1),
-                  onOpenReports: () => setState(() => selectedIndex = 4),
+                  onOpenApprovals: _navigateToStaff,
+                  onOpenReports: () => _setTabIndex(4),
+                  onOpenWaiting: () => _navigateToPatients('Waiting'),
+                  onOpenConsultation: () => _navigateToPatients('In consultation'),
+                  onOpenEmergency: () => _navigateToPatients('Emergency'),
                 ),
                 _StaffTab(
                   verificationService: verificationService,
@@ -94,9 +121,16 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                     ),
                   ),
                 ),
-                _PatientsTab(queueService: queueService),
+                _PatientsTab(
+                  queueService: queueService,
+                  initialFilter: _patientFilter,
+                ),
                 _AppointmentsTab(queueService: queueService),
-                _ReportsTab(queueService: queueService),
+                _ReportsTab(
+                  queueService: queueService,
+                  onOpenPatients: () => _navigateToPatients('All'),
+                  onOpenCompleted: () => _navigateToPatients('Completed'),
+                ),
               ],
             ),
           ),
@@ -106,8 +140,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ? null
           : NavigationBar(
               selectedIndex: selectedIndex,
-              onDestinationSelected: (index) =>
-                  setState(() => selectedIndex = index),
+              onDestinationSelected: _setTabIndex,
               backgroundColor: Colors.white,
               indicatorColor: const Color(0xFFDFF3ED),
               destinations: _navigationDestinations,
@@ -290,16 +323,20 @@ class _AdminSideRail extends StatelessWidget {
                             : const Color(0xFFB8C7D6),
                       ),
                       const SizedBox(width: 12),
-                      Text(
-                        item.$2,
-                        style: TextStyle(
-                          color: selected
-                              ? Colors.white
-                              : const Color(0xFFB8C7D6),
-                          fontSize: 13,
-                          fontWeight: selected
-                              ? FontWeight.w800
-                              : FontWeight.w600,
+                      Expanded(
+                        child: Text(
+                          item.$2,
+                          style: TextStyle(
+                            color: selected
+                                ? Colors.white
+                                : const Color(0xFFB8C7D6),
+                            fontSize: 13,
+                            fontWeight: selected
+                                ? FontWeight.w800
+                                : FontWeight.w600,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -324,12 +361,16 @@ class _AdminSideRail extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: 10),
-                Text(
-                  'Administrator',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
+                Expanded(
+                  child: Text(
+                    'Administrator',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -346,12 +387,18 @@ class _OverviewTab extends StatelessWidget {
   final VerificationService verificationService;
   final VoidCallback onOpenApprovals;
   final VoidCallback onOpenReports;
+  final VoidCallback onOpenWaiting;
+  final VoidCallback onOpenConsultation;
+  final VoidCallback onOpenEmergency;
 
   const _OverviewTab({
     required this.queueService,
     required this.verificationService,
     required this.onOpenApprovals,
     required this.onOpenReports,
+    required this.onOpenWaiting,
+    required this.onOpenConsultation,
+    required this.onOpenEmergency,
   });
 
   @override
@@ -360,7 +407,9 @@ class _OverviewTab extends StatelessWidget {
         .where((item) => item.status == StaffApplicationStatus.pending)
         .length;
     return RefreshIndicator(
-      onRefresh: () async {},
+      onRefresh: () async {
+        await queueService.fetchQueue();
+      },
       child: ListView(
         padding: const EdgeInsets.fromLTRB(18, 4, 18, 24),
         children: [
@@ -391,24 +440,28 @@ class _OverviewTab extends StatelessWidget {
                 '${queueService.waitingCount}',
                 Icons.schedule_rounded,
                 const Color(0xFF1976D2),
+                onTap: onOpenWaiting,
               ),
               _MetricCard(
                 'In consultation',
                 '${queueService.consultationCount}',
                 Icons.medical_services_outlined,
                 const Color(0xFF6C63B5),
+                onTap: onOpenConsultation,
               ),
               _MetricCard(
                 'Emergency',
                 '${queueService.priorityCount}',
                 Icons.emergency_rounded,
                 const Color(0xFFD95757),
+                onTap: onOpenEmergency,
               ),
               _MetricCard(
                 'Staff review',
                 '$pending',
                 Icons.verified_outlined,
                 const Color(0xFF16806A),
+                onTap: onOpenApprovals,
               ),
             ],
           ),
@@ -416,7 +469,7 @@ class _OverviewTab extends StatelessWidget {
           _SectionHeader(
             title: 'Live queue control',
             action: 'Refresh',
-            onAction: () {},
+            onAction: () => queueService.fetchQueue(),
           ),
           const SizedBox(height: 10),
           _QueuePanel(queueService: queueService),
@@ -466,6 +519,13 @@ class _StaffTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final applications = verificationService.applications;
+    final approvedCount = applications
+        .where((a) => a.status == StaffApplicationStatus.approved)
+        .length;
+    final pendingCount = applications
+        .where((a) => a.status == StaffApplicationStatus.pending)
+        .length;
+
     return ListView(
       padding: const EdgeInsets.all(18),
       children: [
@@ -473,13 +533,76 @@ class _StaffTab extends StatelessWidget {
           title: 'Doctor & nurse management',
           subtitle: 'Review professional documents and account status.',
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 14),
+        Wrap(
+          spacing: 10,
+          runSpacing: 8,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE2E8F0),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                'Total Staff: ${applications.length}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  color: Color(0xFF1E293B),
+                ),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFD1FAE5),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                '$approvedCount Approved',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  color: Color(0xFF065F46),
+                ),
+              ),
+            ),
+            if (pendingCount > 0)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFEF3C7),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  '$pendingCount Pending Review',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
+                    color: Color(0xFF92400E),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
         FilledButton.icon(
           onPressed: onOpenApprovals,
-          icon: const Icon(Icons.fact_check_outlined),
-          label: const Text('Open verification review'),
+          icon: Badge(
+            isLabelVisible: pendingCount > 0,
+            label: Text('$pendingCount'),
+            child: const Icon(Icons.fact_check_outlined),
+          ),
+          label: Text(
+            pendingCount > 0
+                ? 'Open verification review ($pendingCount pending)'
+                : 'Open verification review',
+          ),
           style: FilledButton.styleFrom(
             backgroundColor: const Color(0xFF16806A),
+            padding: const EdgeInsets.symmetric(vertical: 14),
           ),
         ),
         const SizedBox(height: 18),
@@ -489,21 +612,65 @@ class _StaffTab extends StatelessWidget {
             text: 'No professional accounts registered yet.',
           )
         else
-          ...applications.map(
-            (application) => _StaffRow(application: application),
-          ),
+          for (var i = 0; i < applications.length; i++)
+            _StaffRow(
+              index: i + 1,
+              application: applications[i],
+            ),
       ],
     );
   }
 }
 
-class _PatientsTab extends StatelessWidget {
+class _PatientsTab extends StatefulWidget {
   final QueueService queueService;
+  final String? initialFilter;
 
-  const _PatientsTab({required this.queueService});
+  const _PatientsTab({
+    required this.queueService,
+    this.initialFilter,
+  });
+
+  @override
+  State<_PatientsTab> createState() => _PatientsTabState();
+}
+
+class _PatientsTabState extends State<_PatientsTab> {
+  late String _filter;
+
+  @override
+  void initState() {
+    super.initState();
+    _filter = widget.initialFilter ?? 'All';
+  }
+
+  @override
+  void didUpdateWidget(covariant _PatientsTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialFilter != null && widget.initialFilter != oldWidget.initialFilter) {
+      _filter = widget.initialFilter!;
+    }
+  }
+
+  List<QueuePatient> get _filteredPatients {
+    final list = widget.queueService.patients;
+    switch (_filter) {
+      case 'Waiting':
+        return list.where((p) => p.status == 'Waiting' || p.status == 'Upcoming').toList();
+      case 'In consultation':
+        return list.where((p) => p.status == 'In Consultation' || p.status == 'Calling').toList();
+      case 'Emergency':
+        return list.where((p) => p.priority == 'Emergency' || p.priority == 'High').toList();
+      case 'Completed':
+        return list.where((p) => p.status == 'Completed').toList();
+      default:
+        return list;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final filtered = _filteredPatients;
     return ListView(
       padding: const EdgeInsets.all(18),
       children: [
@@ -512,41 +679,101 @@ class _PatientsTab extends StatelessWidget {
           subtitle: 'Monitor today\'s appointments and queue activity.',
         ),
         const SizedBox(height: 18),
-        _QueuePanel(queueService: queueService),
+        _QueuePanel(queueService: widget.queueService),
         const SizedBox(height: 20),
-        if (queueService.patients.isEmpty)
-          const _EmptyState(
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              _buildFilterChip('All', widget.queueService.patients.length),
+              const SizedBox(width: 8),
+              _buildFilterChip('Waiting', widget.queueService.waitingCount),
+              const SizedBox(width: 8),
+              _buildFilterChip('In consultation', widget.queueService.consultationCount),
+              const SizedBox(width: 8),
+              _buildFilterChip('Emergency', widget.queueService.priorityCount, isEmergency: true),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        if (filtered.isEmpty)
+          _EmptyState(
             icon: Icons.people_outline_rounded,
-            text: 'No patients have joined today\'s queue.',
+            text: _filter == 'All'
+                ? 'No patients have joined today\'s queue.'
+                : 'No patients found for "$_filter".',
           )
         else
-          ...queueService.patients.map(
-            (patient) => ListTile(
-              contentPadding: const EdgeInsets.symmetric(vertical: 2),
-              leading: CircleAvatar(
-                backgroundColor: const Color(0xFFEAF3FF),
-                child: Text(
-                  '${patient.token}',
-                  style: const TextStyle(color: Color(0xFF1976D2)),
+          ...filtered.map(
+            (patient) => Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: const Color(0xFFE2EAF3)),
+              ),
+              child: ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                leading: CircleAvatar(
+                  backgroundColor: patient.priority == 'Emergency'
+                      ? const Color(0xFFFDE8E8)
+                      : const Color(0xFFEAF3FF),
+                  child: Text(
+                    '${patient.token}',
+                    style: TextStyle(
+                      color: patient.priority == 'Emergency'
+                          ? const Color(0xFFD95757)
+                          : const Color(0xFF1976D2),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
+                title: Text(
+                  patient.name,
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                subtitle: Text('${patient.reason} • ${patient.time} • Dept: ${patient.department}'),
+                trailing: _StatusPill(status: patient.status),
               ),
-              title: Text(
-                patient.name,
-                style: const TextStyle(fontWeight: FontWeight.w700),
-              ),
-              subtitle: Text('${patient.reason} • ${patient.time}'),
-              trailing: _StatusPill(status: patient.status),
             ),
           ),
       ],
+    );
+  }
+
+  Widget _buildFilterChip(String label, int count, {bool isEmergency = false}) {
+    final isSelected = _filter == label;
+    final activeColor = isEmergency ? const Color(0xFFD95757) : const Color(0xFF16806A);
+    return FilterChip(
+      selected: isSelected,
+      label: Text('$label ($count)'),
+      labelStyle: TextStyle(
+        fontSize: 12,
+        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+        color: isSelected ? Colors.white : const Color(0xFF16324F),
+      ),
+      backgroundColor: Colors.white,
+      selectedColor: activeColor,
+      checkmarkColor: Colors.white,
+      side: BorderSide(
+        color: isSelected ? activeColor : const Color(0xFFE2EAF3),
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      onSelected: (_) => setState(() => _filter = label),
     );
   }
 }
 
 class _ReportsTab extends StatelessWidget {
   final QueueService queueService;
+  final VoidCallback? onOpenPatients;
+  final VoidCallback? onOpenCompleted;
 
-  const _ReportsTab({required this.queueService});
+  const _ReportsTab({
+    required this.queueService,
+    this.onOpenPatients,
+    this.onOpenCompleted,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -568,6 +795,7 @@ class _ReportsTab extends StatelessWidget {
                 '$total patients',
                 Icons.today_rounded,
                 const Color(0xFF1976D2),
+                onTap: onOpenPatients,
               ),
             ),
             const SizedBox(width: 12),
@@ -577,6 +805,7 @@ class _ReportsTab extends StatelessWidget {
                 '$completed visits',
                 Icons.check_circle_outline,
                 const Color(0xFF16806A),
+                onTap: onOpenCompleted,
               ),
             ),
           ],
@@ -811,38 +1040,90 @@ class _MetricCard extends StatelessWidget {
   final String value;
   final IconData icon;
   final Color color;
+  final VoidCallback? onTap;
 
-  const _MetricCard(this.label, this.value, this.icon, this.color);
+  const _MetricCard(
+    this.label,
+    this.value,
+    this.icon,
+    this.color, {
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2EAF3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Icon(icon, color: color),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 23,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFF16324F),
-            ),
+        hoverColor: color.withValues(alpha: 0.05),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFE2EAF3)),
           ),
-          Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontSize: 11, color: Color(0xFF718096)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(icon, color: color, size: 20),
+                  ),
+                  if (onTap != null)
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 13,
+                      color: color.withValues(alpha: 0.5),
+                    ),
+                ],
+              ),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 23,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF16324F),
+                ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 11.5,
+                        color: Color(0xFF718096),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  if (onTap != null)
+                    Text(
+                      'View →',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: color,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -951,9 +1232,13 @@ class _TabIntro extends StatelessWidget {
 }
 
 class _StaffRow extends StatelessWidget {
+  final int index;
   final StaffApplication application;
 
-  const _StaffRow({required this.application});
+  const _StaffRow({
+    required this.index,
+    required this.application,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -974,18 +1259,51 @@ class _StaffRow extends StatelessWidget {
       ),
       child: Row(
         children: [
+          Container(
+            width: 32,
+            height: 32,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              '#$index',
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 12,
+                color: Color(0xFF475569),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
           CircleAvatar(
             backgroundColor: color.withValues(alpha: 0.12),
             child: Icon(Icons.person_outline, color: color),
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
-              '${application.name}\n${application.role}',
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF16324F),
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  application.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    color: Color(0xFF16324F),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${application.role} • ${application.department}',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Color(0xFF64748B),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
           _StatusPill(status: application.status.name),
@@ -1034,37 +1352,88 @@ class _ReportCard extends StatelessWidget {
   final String value;
   final IconData icon;
   final Color color;
+  final VoidCallback? onTap;
 
-  const _ReportCard(this.label, this.value, this.icon, this.color);
+  const _ReportCard(
+    this.label,
+    this.value,
+    this.icon,
+    this.color, {
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2EAF3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color),
-          const SizedBox(height: 16),
-          Text(
-            label,
-            style: const TextStyle(color: Color(0xFF718096), fontSize: 12),
+        hoverColor: color.withValues(alpha: 0.05),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: const Color(0xFFE2EAF3)),
           ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Color(0xFF16324F),
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(icon, color: color, size: 20),
+                  ),
+                  if (onTap != null)
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 13,
+                      color: color.withValues(alpha: 0.5),
+                    ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Text(
+                label,
+                style: const TextStyle(
+                  color: Color(0xFF718096),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    value,
+                    style: const TextStyle(
+                      color: Color(0xFF16324F),
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  if (onTap != null)
+                    Text(
+                      'View →',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: color,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

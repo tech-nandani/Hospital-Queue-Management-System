@@ -18,6 +18,8 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController mobileController = TextEditingController();
+  final TextEditingController hospitalController = TextEditingController();
+  final TextEditingController cityController = TextEditingController();
   final TextEditingController licenseController = TextEditingController();
   final TextEditingController degreeController = TextEditingController();
   final TextEditingController identityController = TextEditingController();
@@ -33,12 +35,15 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
   Uint8List? registrationBytes;
   bool isPasswordVisible = false;
   bool isConfirmPasswordVisible = false;
+  bool _isSubmitting = false;
 
   @override
   void dispose() {
     nameController.dispose();
     emailController.dispose();
     mobileController.dispose();
+    hospitalController.dispose();
+    cityController.dispose();
     licenseController.dispose();
     degreeController.dispose();
     identityController.dispose();
@@ -118,7 +123,7 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                 const Text(
                   'CareFlow',
                   style: TextStyle(
-                    color: Color(0xFF16324F),
+                    color: Colors.white,
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.2,
@@ -128,13 +133,13 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE8F2FF),
+                    color: const Color(0xFF1E3A8A),
                     borderRadius: BorderRadius.circular(5),
                   ),
                   child: const Text(
                     'STAFF PORTAL',
                     style: TextStyle(
-                      color: Color(0xFF1976D2),
+                      color: Color(0xFF60A5FA),
                       fontSize: 8.5,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 0.8,
@@ -154,7 +159,7 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
         const Text(
           'Create Staff Account',
           style: TextStyle(
-            color: Color(0xFF16324F),
+            color: Colors.white,
             fontSize: 27,
             fontWeight: FontWeight.w800,
             letterSpacing: -0.3,
@@ -164,7 +169,7 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
         const Text(
           'Create your professional account to manage hospital operations.',
           style: TextStyle(
-            color: Color(0xFF718096),
+            color: Color(0xFF94A3B8),
             fontSize: 14,
             height: 1.4,
           ),
@@ -227,6 +232,12 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                 DropdownButtonFormField<String>(
                   initialValue: selectedDepartment,
                   isExpanded: true,
+                  dropdownColor: Colors.white,
+                  style: const TextStyle(
+                    color: Color(0xFF0F2740),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                   hint: const Text(
                     'Select hospital department',
                     style: TextStyle(color: Color(0xFFA0AEC0), fontSize: 14),
@@ -243,7 +254,14 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                       .map(
                         (dept) => DropdownMenuItem(
                           value: dept,
-                          child: Text(dept),
+                          child: Text(
+                            dept,
+                            style: const TextStyle(
+                              color: Color(0xFF0F2740),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ),
                       )
                       .toList(),
@@ -258,6 +276,12 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: nameController,
+                  style: const TextStyle(
+                    color: Color(0xFF0F2740),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  cursorColor: const Color(0xFF1976D2),
                   keyboardType: TextInputType.name,
                   autofillHints: const [AutofillHints.name],
                   textInputAction: TextInputAction.next,
@@ -274,6 +298,12 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: emailController,
+                  style: const TextStyle(
+                    color: Color(0xFF0F2740),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  cursorColor: const Color(0xFF1976D2),
                   keyboardType: TextInputType.emailAddress,
                   autofillHints: const [AutofillHints.email],
                   textInputAction: TextInputAction.next,
@@ -290,12 +320,63 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: mobileController,
+                  style: const TextStyle(
+                    color: Color(0xFF0F2740),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  cursorColor: const Color(0xFF1976D2),
                   keyboardType: TextInputType.phone,
                   autofillHints: const [AutofillHints.telephoneNumber],
                   textInputAction: TextInputAction.next,
                   decoration: _inputDecoration(
                     hint: 'Enter your mobile number',
                     icon: Icons.phone_outlined,
+                  ),
+                ),
+
+                const SizedBox(height: 18),
+
+                // Hospital / Clinic Name
+                _fieldLabel(
+                  isDoctor ? 'Hospital / Clinic Name' : 'Hospital / Workplace Name',
+                  isRequired: false,
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: hospitalController,
+                  style: const TextStyle(
+                    color: Color(0xFF0F2740),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  cursorColor: const Color(0xFF1976D2),
+                  textInputAction: TextInputAction.next,
+                  decoration: _inputDecoration(
+                    hint: isDoctor
+                        ? 'e.g. CareFlow Clinic, City Care Hospital'
+                        : 'e.g. CareFlow Hospital',
+                    icon: Icons.local_hospital_outlined,
+                  ),
+                ),
+
+                const SizedBox(height: 18),
+
+                // City / Location
+                _fieldLabel('City / Location', isRequired: false),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: cityController,
+                  style: const TextStyle(
+                    color: Color(0xFF0F2740),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  cursorColor: const Color(0xFF1976D2),
+                  textInputAction: TextInputAction.next,
+                  decoration: _inputDecoration(
+                    hint: 'e.g. Lucknow, Mumbai, Delhi',
+                    icon: Icons.location_on_outlined,
                   ),
                 ),
 
@@ -311,6 +392,12 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: licenseController,
+                  style: const TextStyle(
+                    color: Color(0xFF0F2740),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  cursorColor: const Color(0xFF1976D2),
                   decoration: _inputDecoration(
                     hint: isDoctor
                         ? 'Enter medical license number'
@@ -332,6 +419,11 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                 TextField(
                   controller: degreeController,
                   readOnly: true,
+                  style: const TextStyle(
+                    color: Color(0xFF0F2740),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                   onTap: () => _pickDocument(
                     degreeController,
                     isDoctor
@@ -359,6 +451,11 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                 TextField(
                   controller: identityController,
                   readOnly: true,
+                  style: const TextStyle(
+                    color: Color(0xFF0F2740),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                   onTap: () => _pickDocument(
                     identityController,
                     'identity proof',
@@ -387,6 +484,11 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                 TextField(
                   controller: registrationController,
                   readOnly: true,
+                  style: const TextStyle(
+                    color: Color(0xFF0F2740),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
                   onTap: () => _pickDocument(
                     registrationController,
                     'registration certificate',
@@ -409,6 +511,12 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: passwordController,
+                  style: const TextStyle(
+                    color: Color(0xFF0F2740),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  cursorColor: const Color(0xFF1976D2),
                   obscureText: !isPasswordVisible,
                   autofillHints: const [AutofillHints.newPassword],
                   textInputAction: TextInputAction.next,
@@ -437,6 +545,12 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: confirmPasswordController,
+                  style: const TextStyle(
+                    color: Color(0xFF0F2740),
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  cursorColor: const Color(0xFF1976D2),
                   obscureText: !isConfirmPasswordVisible,
                   autofillHints: const [AutofillHints.newPassword],
                   textInputAction: TextInputAction.done,
@@ -467,11 +581,22 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                   width: double.infinity,
                   height: 52,
                   child: ElevatedButton.icon(
-                    onPressed: _submitApplication,
-                    icon: const Icon(Icons.verified_user_outlined, size: 19),
-                    label: const Text(
-                      'Create Staff Account',
-                      style: TextStyle(
+                    onPressed: _isSubmitting ? null : _submitApplication,
+                    icon: _isSubmitting
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.verified_user_outlined, size: 19),
+                    label: Text(
+                      _isSubmitting
+                          ? 'Registering...'
+                          : 'Create Staff Account',
+                      style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.3,
@@ -608,7 +733,7 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
     );
   }
 
-  void _submitApplication() {
+  void _submitApplication() async {
     final fields = [
       nameController.text.trim(),
       emailController.text.trim(),
@@ -632,56 +757,87 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
       return;
     }
 
-    VerificationService.instance.submitApplication(
-      name: nameController.text.trim(),
-      email: emailController.text.trim(),
-      mobile: mobileController.text.trim(),
-      password: passwordController.text,
-      role: selectedRole,
-      department: selectedDepartment!,
-      medicalLicenseNumber: licenseController.text.trim(),
-      degreeCertificate: degreeController.text.trim(),
-      identityProof: identityController.text.trim(),
-      registrationCertificate: registrationController.text.trim(),
-      degreeCertificateBytes: degreeBytes,
-      identityProofBytes: identityBytes,
-      registrationCertificateBytes: registrationBytes,
-    );
+    setState(() => _isSubmitting = true);
 
-    TextInput.finishAutofillContext();
+    try {
+      await VerificationService.instance.submitApplication(
+        name: nameController.text.trim(),
+        email: emailController.text.trim(),
+        mobile: mobileController.text.trim(),
+        password: passwordController.text,
+        role: selectedRole,
+        department: selectedDepartment!,
+        medicalLicenseNumber: licenseController.text.trim(),
+        degreeCertificate: degreeController.text.trim(),
+        identityProof: identityController.text.trim(),
+        registrationCertificate: registrationController.text.trim(),
+        hospitalName: hospitalController.text.trim().isNotEmpty
+            ? hospitalController.text.trim()
+            : null,
+        city: cityController.text.trim().isNotEmpty
+            ? cityController.text.trim()
+            : null,
+        degreeCertificateBytes: degreeBytes,
+        identityProofBytes: identityBytes,
+        registrationCertificateBytes: registrationBytes,
+      );
 
-    showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-        title: const Text(
-          'Application submitted',
-          style: TextStyle(fontWeight: FontWeight.w700),
-        ),
-        content: const Text(
-          'Your documents are under admin review. You can login after your account is approved.',
-          style: TextStyle(color: Color(0xFF4A5568)),
-        ),
-        actions: [
-          ElevatedButton(
-            onPressed: () {
-              final regEmail = emailController.text.trim();
-              Navigator.pop(context); // pop dialog
-              Navigator.pop(context, regEmail); // pop back to login screen with email
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1976D2),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+      TextInput.finishAutofillContext();
+
+      if (!mounted) return;
+
+      showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => AlertDialog(
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          title: const Row(
+            children: [
+              Icon(
+                Icons.check_circle_rounded,
+                color: Color(0xFF16806A),
+                size: 24,
               ),
-            ),
-            child: const Text('Done'),
+              SizedBox(width: 8),
+              Text(
+                'Registration Successful',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
+          content: const Text(
+            'Your staff account has been created and verified. You can now login with your credentials.',
+            style: TextStyle(color: Color(0xFF4A5568)),
+          ),
+          actions: [
+            ElevatedButton(
+              onPressed: () {
+                final regEmail = emailController.text.trim();
+                Navigator.pop(context); // pop dialog
+                Navigator.pop(context, regEmail); // pop back to login screen with email
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1976D2),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text('Proceed to Login'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        _showMessage('Error creating account: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
   }
 
   Future<void> _pickDocument(
@@ -740,26 +896,30 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
   }) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Color(0xFFA0AEC0), fontSize: 14),
+      hintStyle: const TextStyle(
+        color: Color(0xFF8A9BA8),
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+      ),
       prefixIcon: Icon(icon, color: const Color(0xFF1976D2), size: 20),
       suffixIcon: suffixIcon,
       filled: true,
-      fillColor: const Color(0xFFF8FAFD),
+      fillColor: Colors.white,
       contentPadding: const EdgeInsets.symmetric(
         vertical: 16,
         horizontal: 16,
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFFE2EAF3)),
+        borderSide: const BorderSide(color: Color(0xFFD6E2EE)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFFE2EAF3)),
+        borderSide: const BorderSide(color: Color(0xFFD6E2EE)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: Color(0xFF1976D2), width: 1.5),
+        borderSide: const BorderSide(color: Color(0xFF1976D2), width: 1.8),
       ),
     );
   }

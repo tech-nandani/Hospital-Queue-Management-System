@@ -12,43 +12,90 @@ class RoleSelectionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF071A2D),
-      body: Stack(
-        children: [
-          const Positioned.fill(
-            child: HospitalWorkflowVisual(
-              showHeader: true,
-              activeToken: 'A-104',
-            ),
-          ),
-          Positioned.fill(
-            child: Container(
-              color: const Color(0xFF071A2D).withValues(alpha: 0.48),
-            ),
-          ),
-          SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return Center(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(20),
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxWidth: 520,
-                        minHeight: constraints.maxHeight - 40,
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 850;
+
+          if (isWide) {
+            return Row(
+              children: [
+                // ==========================================
+                // LEFT SIDE — HOSPITAL WORKFLOW ANIMATION
+                // ==========================================
+                const Expanded(
+                  flex: 6,
+                  child: HospitalWorkflowVisual(
+                    showHeader: true,
+                    activeToken: 'A-104',
+                  ),
+                ),
+
+                // ==========================================
+                // RIGHT SIDE — ROLE SELECTION CONTENT
+                // ==========================================
+                Expanded(
+                  flex: 5,
+                  child: Container(
+                    height: double.infinity,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF071A2D),
+                      border: Border(
+                        left: BorderSide(
+                          color: Color(0xFF162D4A),
+                          width: 1.5,
+                        ),
                       ),
-                      child: InteractiveViewer(
-                        boundaryMargin: const EdgeInsets.all(32),
-                        minScale: 0.85,
-                        maxScale: 1.15,
+                    ),
+                    child: SafeArea(
+                      child: Center(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 28,
+                            vertical: 24,
+                          ),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 500),
+                            child: _buildRoleContent(context),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }
+
+          // Compact / Mobile Layout: Top Hero Animation + Scrollable Role Content
+          return SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(
+                    height: 240,
+                    child: HospitalWorkflowVisual(
+                      showHeader: false,
+                      isCompact: true,
+                      activeToken: 'A-104',
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 20,
+                    ),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 500),
                         child: _buildRoleContent(context),
                       ),
                     ),
                   ),
-                );
-              },
+                ],
+              ),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

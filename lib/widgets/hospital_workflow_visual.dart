@@ -166,7 +166,9 @@ class _HospitalWorkflowVisualState extends State<HospitalWorkflowVisual>
                           if (!widget.useIllustrationAsset)
                             CustomPaint(
                               size: const Size(620, 480),
-                              painter: _HospitalSceneVectorPainter(),
+                              painter: widget.mode == WorkflowVisualMode.staffRegistration
+                                  ? _DoctorClinicalSceneVectorPainter(glowProgress: _glowController.value)
+                                  : _HospitalSceneVectorPainter(),
                             ),
 
                           // Live Digital Wall Queue Display (HUD)
@@ -492,6 +494,14 @@ class _HospitalWorkflowVisualState extends State<HospitalWorkflowVisual>
   // DIGITAL QUEUE DISPLAY (WALL HUD)
   // ==========================================
   Widget _buildDigitalQueueDisplay() {
+    final isStaff = widget.mode == WorkflowVisualMode.staffRegistration;
+    final boardTitle = isStaff ? 'OPD CLINICAL SUITE' : 'QUEUE BOARD';
+    final counterLabel = isStaff ? 'ROOM #D-201' : 'COUNTER 02';
+    final statusLabel = isStaff ? 'NOW ATTENDING' : 'NOW SERVING';
+    final doctor = isStaff ? '• On-Duty Specialist' : '• ${widget.doctorName}';
+    final queueSub = isStaff ? 'Next: ST-202, ST-203' : 'Next: A-105, A-106';
+    final waitText = isStaff ? 'Live Telemetry' : 'Wait ~${widget.estimatedWaitMinutes}m';
+
     return Container(
       width: 220,
       padding: const EdgeInsets.all(12),
@@ -526,11 +536,11 @@ class _HospitalWorkflowVisualState extends State<HospitalWorkflowVisual>
                 ),
               ),
               const SizedBox(width: 5),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'QUEUE BOARD',
+                  boardTitle,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Color(0xFF94A3B8),
                     fontSize: 8.5,
                     fontWeight: FontWeight.w700,
@@ -544,9 +554,9 @@ class _HospitalWorkflowVisualState extends State<HospitalWorkflowVisual>
                   color: const Color(0xFF00B4D8).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: const Text(
-                  'COUNTER 02',
-                  style: TextStyle(
+                child: Text(
+                  counterLabel,
+                  style: const TextStyle(
                     color: Color(0xFF38BDF8),
                     fontSize: 8,
                     fontWeight: FontWeight.w700,
@@ -558,9 +568,9 @@ class _HospitalWorkflowVisualState extends State<HospitalWorkflowVisual>
           const SizedBox(height: 8),
 
           // Active token indicator
-          const Text(
-            'NOW SERVING',
-            style: TextStyle(
+          Text(
+            statusLabel,
+            style: const TextStyle(
               color: Color(0xFF64748B),
               fontSize: 8,
               fontWeight: FontWeight.w600,
@@ -590,7 +600,7 @@ class _HospitalWorkflowVisualState extends State<HospitalWorkflowVisual>
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '• ${widget.doctorName}',
+                  doctor,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: Color(0xFFCBD5E1),
@@ -612,11 +622,11 @@ class _HospitalWorkflowVisualState extends State<HospitalWorkflowVisual>
             ),
             child: Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Text(
-                    'Next: A-105, A-106',
+                    queueSub,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Color(0xFF94A3B8),
                       fontSize: 8,
                       fontWeight: FontWeight.w600,
@@ -624,7 +634,7 @@ class _HospitalWorkflowVisualState extends State<HospitalWorkflowVisual>
                   ),
                 ),
                 Text(
-                  'Wait ~${widget.estimatedWaitMinutes}m',
+                  waitText,
                   style: const TextStyle(
                     color: Color(0xFF38BDF8),
                     fontSize: 8,
@@ -656,10 +666,10 @@ class _HospitalWorkflowVisualState extends State<HospitalWorkflowVisual>
         subtitle = 'Instant Queue & Booking Link';
         break;
       case WorkflowVisualMode.staffRegistration:
-        icon = Icons.badge_rounded;
-        title = 'STAFF PROFILE';
-        code = 'Doctor / Receptionist';
-        subtitle = 'Admin Verification Pending';
+        icon = Icons.verified_user_rounded;
+        title = 'VERIFIED PHYSICIAN';
+        code = 'MCI / Medical Council';
+        subtitle = 'Credential Verified • E-Sign Active';
         break;
       case WorkflowVisualMode.patientWorkflow:
         icon = Icons.confirmation_number_outlined;
@@ -832,11 +842,11 @@ class _HospitalWorkflowVisualState extends State<HospitalWorkflowVisual>
         dept = widget.department;
         break;
       case WorkflowVisualMode.staffRegistration:
-        icon = Icons.health_and_safety_rounded;
-        title = 'WORKFORCE';
-        time = 'Active Shift';
-        name = 'Doctor / Receptionist';
-        dept = 'CareFlow Operations Desk';
+        icon = Icons.monitor_heart_rounded;
+        title = 'CLINICAL TELEMETRY';
+        time = 'Normal Sinus';
+        name = 'Dr. Diagnostic Suite';
+        dept = 'Live Vitals & Smart E-Prescription';
         break;
       case WorkflowVisualMode.patientWorkflow:
         icon = Icons.calendar_today_rounded;
@@ -1135,6 +1145,547 @@ class _HospitalBackgroundPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _HospitalBackgroundPainter oldDelegate) {
+    return oldDelegate.glowProgress != glowProgress;
+  }
+}
+
+// ============================================================================
+// PAINTER 2B: DOCTOR CLINICAL STATION SCENE (PHYSICIAN, WORKSTATION, ECG & VITALS)
+// ============================================================================
+class _DoctorClinicalSceneVectorPainter extends CustomPainter {
+  final double glowProgress;
+
+  _DoctorClinicalSceneVectorPainter({required this.glowProgress});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    _drawClinicArchitecture(canvas, size);
+    _drawHolographicCaduceus(canvas, size);
+    _drawConsultationDesk(canvas, size);
+    _drawWorkstationMonitor(canvas, size);
+    _drawDeskMedicalTools(canvas, size);
+    _drawPhysicianFigure(canvas, size);
+    _drawClinicalParticles(canvas, size);
+  }
+
+  // 1. Clinical room architecture & reflective hospital floor
+  void _drawClinicArchitecture(Canvas canvas, Size size) {
+    // Floor plane
+    final floorPaint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Color(0xFF0F2642), Color(0xFF071424)],
+      ).createShader(Rect.fromLTWH(0, 345, size.width, 135));
+    canvas.drawRect(Rect.fromLTWH(0, 345, size.width, 135), floorPaint);
+
+    // Floor horizon neon accent line
+    final horizonPaint = Paint()
+      ..color = const Color(0xFF00B4D8).withValues(alpha: 0.35)
+      ..strokeWidth = 1.4;
+    canvas.drawLine(Offset(0, 345), Offset(size.width, 345), horizonPaint);
+
+    // Soft reflective floor highlights under desk and doctor
+    final reflectionPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          const Color(0xFF00B4D8).withValues(alpha: 0.12),
+          Colors.transparent,
+        ],
+      ).createShader(
+        Rect.fromCenter(center: const Offset(380, 375), width: 260, height: 40),
+      );
+    canvas.drawOval(
+      Rect.fromCenter(center: const Offset(380, 375), width: 260, height: 40),
+      reflectionPaint,
+    );
+
+    // Frosted glass wall background mullions
+    final mullionPaint = Paint()
+      ..color = const Color(0xFF00B4D8).withValues(alpha: 0.12)
+      ..strokeWidth = 1.5;
+    for (final x in [100.0, 240.0, 390.0, 530.0]) {
+      canvas.drawLine(Offset(x, 60), Offset(x, 345), mullionPaint);
+    }
+
+    // Horizontal luminous clinical data lines
+    final dataLine1 = Paint()
+      ..color = const Color(0xFF00B4D8).withValues(alpha: 0.10)
+      ..strokeWidth = 1.0;
+    canvas.drawLine(const Offset(80, 115), const Offset(550, 115), dataLine1);
+
+    final dataLine2 = Paint()
+      ..color = const Color(0xFF10B981).withValues(alpha: 0.09)
+      ..strokeWidth = 1.0;
+    canvas.drawLine(const Offset(80, 160), const Offset(550, 160), dataLine2);
+  }
+
+  // 2. Holographic glowing medical caduceus / cross
+  void _drawHolographicCaduceus(Canvas canvas, Size size) {
+    const center = Offset(245, 135);
+    final pulseScale = 1.0 + (glowProgress * 0.15);
+
+    // Outer breathing halo
+    final haloPaint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          const Color(0xFF00B4D8).withValues(alpha: 0.15 * pulseScale),
+          Colors.transparent,
+        ],
+      ).createShader(Rect.fromCircle(center: center, radius: 65 * pulseScale));
+    canvas.drawCircle(center, 65 * pulseScale, haloPaint);
+
+    // Holographic concentric rings
+    final ring1 = Paint()
+      ..color = const Color(0xFF00B4D8).withValues(alpha: 0.22 + (glowProgress * 0.12))
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+    canvas.drawCircle(center, 34 * pulseScale, ring1);
+
+    final ring2 = Paint()
+      ..color = const Color(0xFF38EF7D).withValues(alpha: 0.14 + (glowProgress * 0.08))
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    canvas.drawCircle(center, 50 * pulseScale, ring2);
+
+    // Illuminated medical cross
+    final crossPaint = Paint()
+      ..color = const Color(0xFF00B4D8).withValues(alpha: 0.5)
+      ..style = PaintingStyle.fill;
+
+    // Vertical arm
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(center: center, width: 12, height: 40),
+        const Radius.circular(3),
+      ),
+      crossPaint,
+    );
+    // Horizontal arm
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(center: center, width: 40, height: 12),
+        const Radius.circular(3),
+      ),
+      crossPaint,
+    );
+
+    // Bright core
+    final corePaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.85)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(center, 3.5, corePaint);
+  }
+
+  // 3. Modern physician consultation desk
+  void _drawConsultationDesk(Canvas canvas, Size size) {
+    // Desk surface
+    final deskSurface = RRect.fromRectAndCorners(
+      const Rect.fromLTWH(240, 275, 310, 24),
+      topLeft: const Radius.circular(14),
+      topRight: const Radius.circular(14),
+      bottomLeft: const Radius.circular(3),
+      bottomRight: const Radius.circular(3),
+    );
+    final surfacePaint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Color(0xFF1E3A5F), Color(0xFF0F2642)],
+      ).createShader(const Rect.fromLTWH(240, 275, 310, 24));
+    canvas.drawRRect(deskSurface, surfacePaint);
+
+    // Glowing top neon rim line
+    final neonRimPaint = Paint()
+      ..color = const Color(0xFF38BDF8)
+      ..strokeWidth = 2.0
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(const Offset(248, 275), const Offset(542, 275), neonRimPaint);
+
+    // Modesty front panel
+    final panelRect = RRect.fromRectAndRadius(
+      const Rect.fromLTWH(255, 299, 280, 48),
+      const Radius.circular(6),
+    );
+    final panelPaint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [Color(0xFF0D223B), Color(0xFF081423)],
+      ).createShader(const Rect.fromLTWH(255, 299, 280, 48));
+    canvas.drawRRect(panelRect, panelPaint);
+
+    final panelBorder = Paint()
+      ..color = const Color(0xFF00B4D8).withValues(alpha: 0.25)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.1;
+    canvas.drawRRect(panelRect, panelBorder);
+
+    // Titanium desk pedestals
+    final legPaint = Paint()..color = const Color(0xFF475569);
+    canvas.drawRect(const Rect.fromLTWH(265, 347, 12, 20), legPaint);
+    canvas.drawRect(const Rect.fromLTWH(505, 347, 12, 20), legPaint);
+  }
+
+  // 4. Clinical workstation monitor with active ECG & cardiac scans
+  void _drawWorkstationMonitor(Canvas canvas, Size size) {
+    // Monitor stand
+    final standArm = Paint()..color = const Color(0xFF94A3B8);
+    canvas.drawRect(const Rect.fromLTWH(426, 245, 8, 30), standArm);
+
+    final standBase = Paint()..color = const Color(0xFFCBD5E1);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        const Rect.fromLTWH(412, 271, 36, 4),
+        const Radius.circular(2),
+      ),
+      standBase,
+    );
+
+    // Ultra-wide curved screen bezel
+    final bezelRect = RRect.fromRectAndRadius(
+      const Rect.fromLTWH(345, 168, 170, 82),
+      const Radius.circular(8),
+    );
+    final bezelPaint = Paint()..color = const Color(0xFF0B132B);
+    canvas.drawRRect(bezelRect, bezelPaint);
+
+    final bezelGlow = Paint()
+      ..color = const Color(0xFF38BDF8).withValues(alpha: 0.55)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.3;
+    canvas.drawRRect(bezelRect, bezelGlow);
+
+    // Screen display backdrop
+    final screenRect = RRect.fromRectAndRadius(
+      const Rect.fromLTWH(349, 172, 162, 74),
+      const Radius.circular(6),
+    );
+    final screenPaint = Paint()..color = const Color(0xFF06101E);
+    canvas.drawRRect(screenRect, screenPaint);
+
+    // Monitor screen top header bar
+    final headerPaint = Paint()..color = const Color(0xFF0D233A);
+    canvas.drawRect(const Rect.fromLTWH(349, 172, 162, 13), headerPaint);
+
+    // Mini green status dot & header line
+    final dotPaint = Paint()..color = const Color(0xFF38EF7D);
+    canvas.drawCircle(const Offset(356, 178.5), 2.2, dotPaint);
+
+    final headerTextLine = Paint()
+      ..color = Colors.white.withValues(alpha: 0.8)
+      ..strokeWidth = 1.2;
+    canvas.drawLine(const Offset(362, 178.5), const Offset(420, 178.5), headerTextLine);
+
+    // Mini ECG waveform on monitor
+    final ecgPath = Path();
+    ecgPath.moveTo(353, 203);
+    ecgPath.lineTo(370, 203);
+    ecgPath.lineTo(373, 206);
+    ecgPath.lineTo(378, 191); // R spike
+    ecgPath.lineTo(382, 210); // S dip
+    ecgPath.lineTo(386, 203);
+    ecgPath.lineTo(392, 198); // T wave
+    ecgPath.lineTo(398, 203);
+    ecgPath.lineTo(430, 203);
+    ecgPath.lineTo(433, 206);
+    ecgPath.lineTo(438, 191);
+    ecgPath.lineTo(442, 210);
+    ecgPath.lineTo(446, 203);
+    ecgPath.lineTo(452, 198);
+    ecgPath.lineTo(458, 203);
+    ecgPath.lineTo(502, 203);
+
+    final ecgPaint = Paint()
+      ..color = const Color(0xFF38EF7D)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4
+      ..strokeCap = StrokeCap.round;
+    canvas.drawPath(ecgPath, ecgPaint);
+
+    // Stylized glowing heart / organ diagnostic graphic
+    final heartCenter = const Offset(372, 228);
+    final heartGlow = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          const Color(0xFFF43F5E).withValues(alpha: 0.4),
+          Colors.transparent,
+        ],
+      ).createShader(Rect.fromCircle(center: heartCenter, radius: 14));
+    canvas.drawCircle(heartCenter, 14, heartGlow);
+
+    final heartPaint = Paint()
+      ..color = const Color(0xFFF43F5E)
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(const Offset(370, 227), 4.0, heartPaint);
+    canvas.drawCircle(const Offset(375, 227), 4.0, heartPaint);
+
+    // Vitals indicator bars on screen
+    final barGreen = Paint()..color = const Color(0xFF38EF7D);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(const Rect.fromLTWH(395, 222, 16, 5), const Radius.circular(2)),
+      barGreen,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(const Rect.fromLTWH(395, 229, 24, 5), const Radius.circular(2)),
+      barGreen,
+    );
+
+    // Numeric badge chips: HR 74, SpO2 99%
+    final chipPaint = Paint()..color = const Color(0xFF00B4D8).withValues(alpha: 0.25);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(const Rect.fromLTWH(428, 221, 32, 14), const Radius.circular(3)),
+      chipPaint,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(const Rect.fromLTWH(465, 221, 38, 14), const Radius.circular(3)),
+      chipPaint,
+    );
+
+    final chipText = Paint()
+      ..color = const Color(0xFF38BDF8)
+      ..strokeWidth = 1.0;
+    canvas.drawLine(const Offset(432, 228), const Offset(456, 228), chipText);
+    canvas.drawLine(const Offset(469, 228), const Offset(498, 228), chipText);
+  }
+
+  // 5. Stethoscope & diagnostic tools on desk
+  void _drawDeskMedicalTools(Canvas canvas, Size size) {
+    // Stethoscope resting on desk
+    final tubePaint = Paint()
+      ..color = const Color(0xFF0E7490)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.4
+      ..strokeCap = StrokeCap.round;
+
+    final stethPath = Path();
+    stethPath.moveTo(270, 282);
+    stethPath.cubicTo(278, 288, 290, 291, 305, 286);
+    stethPath.cubicTo(318, 282, 326, 286, 332, 289);
+    canvas.drawPath(stethPath, tubePaint);
+
+    // Chrome binaural tubes
+    final binauralPaint = Paint()
+      ..color = const Color(0xFFCBD5E1)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6;
+    canvas.drawLine(const Offset(270, 282), const Offset(263, 279), binauralPaint);
+    canvas.drawLine(const Offset(270, 282), const Offset(264, 285), binauralPaint);
+
+    // Chrome dual-head chest piece
+    final bellPaint = Paint()..color = const Color(0xFFE2E8F0);
+    canvas.drawCircle(const Offset(334, 289), 5.5, bellPaint);
+
+    final diaphragmInner = Paint()..color = const Color(0xFF00B4D8);
+    canvas.drawCircle(const Offset(334, 289), 2.8, diaphragmInner);
+
+    // Digital stylus & charging cradle
+    final cradlePaint = Paint()..color = const Color(0xFF1E293B);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(const Rect.fromLTWH(515, 279, 18, 8), const Radius.circular(2)),
+      cradlePaint,
+    );
+    final ledPaint = Paint()..color = const Color(0xFF38BDF8);
+    canvas.drawCircle(const Offset(524, 283), 1.8, ledPaint);
+  }
+
+  // 6. Doctor / Physician figure holding illuminated clinical tablet
+  void _drawPhysicianFigure(Canvas canvas, Size size) {
+    // Head & face
+    final headCenter = const Offset(195, 142);
+    final facePaint = Paint()..color = const Color(0xFFE5B895);
+    canvas.drawOval(
+      Rect.fromCenter(center: headCenter, width: 22, height: 26),
+      facePaint,
+    );
+
+    // Hair
+    final hairPaint = Paint()..color = const Color(0xFF1E293B);
+    final hairPath = Path();
+    hairPath.moveTo(182, 142);
+    hairPath.cubicTo(182, 128, 208, 128, 208, 142);
+    hairPath.cubicTo(208, 134, 192, 131, 182, 142);
+    canvas.drawPath(hairPath, hairPaint);
+
+    // Neck
+    final neckPaint = Paint()..color = const Color(0xFFDCA982);
+    canvas.drawRect(const Rect.fromLTWH(190, 155, 10, 11), neckPaint);
+
+    // Navy scrub collar
+    final scrubPaint = Paint()..color = const Color(0xFF0A2540);
+    final scrubPath = Path();
+    scrubPath.moveTo(188, 166);
+    scrubPath.lineTo(195, 178);
+    scrubPath.lineTo(202, 166);
+    scrubPath.close();
+    canvas.drawPath(scrubPath, scrubPaint);
+
+    // Doctor's Pristine White Lab Coat
+    final coatPaint = Paint()..color = const Color(0xFFF8FAFC);
+    final coatShade = Paint()..color = const Color(0xFFE2E8F0);
+
+    final coatPath = Path();
+    coatPath.moveTo(174, 172); // left shoulder
+    coatPath.lineTo(216, 172); // right shoulder
+    coatPath.lineTo(220, 255); // right torso
+    coatPath.lineTo(222, 310); // right hem
+    coatPath.lineTo(168, 310); // left hem
+    coatPath.lineTo(170, 255); // left torso
+    coatPath.close();
+    canvas.drawPath(coatPath, coatPaint);
+
+    // Lapel folds
+    canvas.drawLine(const Offset(185, 172), const Offset(195, 215), coatShade..strokeWidth = 1.8);
+    canvas.drawLine(const Offset(205, 172), const Offset(195, 215), coatShade..strokeWidth = 1.8);
+    canvas.drawLine(const Offset(195, 215), const Offset(195, 310), coatShade..strokeWidth = 1.4);
+
+    // Left chest pocket with clinical pens
+    final pocketPaint = Paint()..color = const Color(0xFFEDF2F7);
+    canvas.drawRect(const Rect.fromLTWH(204, 196, 11, 15), pocketPaint);
+
+    final penPaint = Paint()..color = const Color(0xFF94A3B8)..strokeWidth = 1.5;
+    canvas.drawLine(const Offset(206, 192), const Offset(206, 196), penPaint);
+    canvas.drawLine(const Offset(210, 193), const Offset(210, 196), penPaint);
+
+    // ID Badge lanyard clip: CareFlow Physician Badge
+    final badgeClip = Paint()..color = const Color(0xFF00B4D8);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(const Rect.fromLTWH(184, 196, 8, 12), const Radius.circular(2)),
+      badgeClip,
+    );
+
+    // Stethoscope around Doctor's neck
+    final stethNeckPaint = Paint()
+      ..color = const Color(0xFF0E7490)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.2
+      ..strokeCap = StrokeCap.round;
+
+    final stethNeckPath = Path();
+    stethNeckPath.moveTo(186, 168);
+    stethNeckPath.cubicTo(184, 185, 185, 202, 187, 212);
+    canvas.drawPath(stethNeckPath, stethNeckPaint);
+
+    final stethNeckPath2 = Path();
+    stethNeckPath2.moveTo(204, 168);
+    stethNeckPath2.cubicTo(206, 185, 205, 205, 203, 218);
+    canvas.drawPath(stethNeckPath2, stethNeckPaint);
+
+    final bellNeck = Paint()..color = const Color(0xFFCBD5E1);
+    canvas.drawCircle(const Offset(203, 221), 3.2, bellNeck);
+
+    // Professional navy trousers
+    final trouserPaint = Paint()..color = const Color(0xFF1E293B);
+    final trouserPath = Path();
+    trouserPath.moveTo(173, 310);
+    trouserPath.lineTo(193, 310);
+    trouserPath.lineTo(193, 355);
+    trouserPath.lineTo(175, 355);
+    trouserPath.close();
+    canvas.drawPath(trouserPath, trouserPaint);
+
+    final trouserPath2 = Path();
+    trouserPath2.moveTo(197, 310);
+    trouserPath2.lineTo(217, 310);
+    trouserPath2.lineTo(215, 355);
+    trouserPath2.lineTo(197, 355);
+    trouserPath2.close();
+    canvas.drawPath(trouserPath2, trouserPaint);
+
+    // Shoes
+    final shoePaint = Paint()..color = const Color(0xFF0F172A);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(const Rect.fromLTWH(172, 354, 18, 7), const Radius.circular(3)),
+      shoePaint,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(const Rect.fromLTWH(199, 354, 18, 7), const Radius.circular(3)),
+      shoePaint,
+    );
+
+    // Doctor holding digital medical tablet
+    // Left arm angled holding tablet
+    final armPaint = Paint()
+      ..color = const Color(0xFFF8FAFC)
+      ..strokeWidth = 9.0
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(const Offset(172, 188), const Offset(158, 220), armPaint);
+    canvas.drawLine(const Offset(158, 220), const Offset(176, 234), armPaint);
+
+    final handPaint = Paint()..color = const Color(0xFFE5B895);
+    canvas.drawCircle(const Offset(177, 235), 4.5, handPaint);
+
+    // Tablet screen glowing cone onto doctor's coat
+    final tabletGlow = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          const Color(0xFF38BDF8).withValues(alpha: 0.35),
+          Colors.transparent,
+        ],
+      ).createShader(Rect.fromCircle(center: const Offset(186, 240), radius: 34));
+    canvas.drawCircle(const Offset(186, 240), 34, tabletGlow);
+
+    // Illuminated diagnostic tablet
+    canvas.save();
+    canvas.translate(182, 238);
+    canvas.rotate(-0.18);
+
+    // Tablet body
+    final tabBody = RRect.fromRectAndRadius(
+      Rect.fromCenter(center: Offset.zero, width: 28, height: 40),
+      const Radius.circular(4),
+    );
+    canvas.drawRRect(tabBody, Paint()..color = const Color(0xFF0F172A));
+
+    // Neon cyan rim
+    canvas.drawRRect(
+      tabBody,
+      Paint()
+        ..color = const Color(0xFF38BDF8)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.1,
+    );
+
+    // Tablet screen
+    final tabScreen = RRect.fromRectAndRadius(
+      Rect.fromCenter(center: Offset.zero, width: 24, height: 36),
+      const Radius.circular(3),
+    );
+    canvas.drawRRect(tabScreen, Paint()..color = const Color(0xFF07192F));
+
+    // Chart lines on tablet
+    final tabLine = Paint()
+      ..color = Colors.white.withValues(alpha: 0.85)
+      ..strokeWidth = 1.0;
+    canvas.drawLine(const Offset(-8, -10), const Offset(8, -10), tabLine);
+    canvas.drawLine(const Offset(-8, -5), const Offset(4, -5), tabLine);
+    canvas.drawLine(
+      const Offset(-8, 0),
+      const Offset(6, 0),
+      Paint()
+        ..color = const Color(0xFF38EF7D)
+        ..strokeWidth = 1.1,
+    );
+    canvas.drawLine(const Offset(-8, 5), const Offset(2, 5), tabLine);
+    canvas.drawLine(const Offset(-8, 10), const Offset(7, 10), tabLine);
+
+    canvas.restore();
+  }
+
+  // 7. Ambient clinical light beams and holographic telemetry particles
+  void _drawClinicalParticles(Canvas canvas, Size size) {
+    final particle1 = Paint()..color = const Color(0xFF38BDF8).withValues(alpha: 0.28);
+    final particle2 = Paint()..color = const Color(0xFF38EF7D).withValues(alpha: 0.25);
+
+    canvas.drawCircle(const Offset(150, 110), 2.5, particle1);
+    canvas.drawCircle(const Offset(310, 95), 2.0, particle2);
+    canvas.drawCircle(const Offset(490, 140), 2.8, particle1);
+    canvas.drawCircle(const Offset(280, 240), 1.8, particle2);
+    canvas.drawCircle(const Offset(530, 245), 2.2, particle1);
+  }
+
+  @override
+  bool shouldRepaint(covariant _DoctorClinicalSceneVectorPainter oldDelegate) {
     return oldDelegate.glowProgress != glowProgress;
   }
 }

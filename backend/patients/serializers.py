@@ -94,6 +94,7 @@ class DoctorSerializer(serializers.ModelSerializer):
         model = DoctorProfile
         fields = [
             'id', 'name', 'role', 'qualification', 'specialty',
+            'hospital_name', 'city',
             'department', 'is_available', 'consultation_start', 'consultation_end',
         ]
 
@@ -119,7 +120,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
             'prescription', 'treatment_advice', 'follow_up_date',
             'consultation_completed_at', 'created_at', 'updated_at',
         ]
-        read_only_fields = ['queue_token', 'estimated_wait_minutes']
+        read_only_fields = ['patient', 'queue_token', 'estimated_wait_minutes']
 
     def get_patient_name(self, obj):
         if obj.patient:

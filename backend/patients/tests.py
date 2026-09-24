@@ -30,7 +30,7 @@ class PatientApiTests(APITestCase):
             'password': 'secure-password',
         }, format='json')
         self.assertEqual(response.status_code, 201)
-        self.client.credentials(HTTP_AUTHORIZATION=f"Token {response.data['token']}")
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {response.data['access']}")
         profile = self.client.get('/api/patient/profile/')
         self.assertEqual(profile.status_code, 200)
         self.assertEqual(profile.data['name'], 'Test Patient')
@@ -42,8 +42,8 @@ class PatientApiTests(APITestCase):
             'mobile': '9999999999',
             'password': 'secure-password',
         }, format='json')
-        self.client.credentials(HTTP_AUTHORIZATION=f"Token {register.data['token']}")
-        doctors = self.client.get('/api/patient/doctors/?department=1')
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {register.data['access']}")
+        doctors = self.client.get(f'/api/patient/doctors/?department={self.department.id}')
         self.assertEqual(doctors.status_code, 200)
         self.assertEqual(len(doctors.data), 1)
         booking = self.client.post('/api/patient/appointments/', {
@@ -62,7 +62,7 @@ class PatientApiTests(APITestCase):
             'mobile': '8888888888',
             'password': 'secure-password',
         }, format='json')
-        self.client.credentials(HTTP_AUTHORIZATION=f"Token {register.data['token']}")
+        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {register.data['access']}")
         booking = self.client.post('/api/patient/appointments/', {
             'doctor': DoctorProfile.objects.first().id,
             'appointment_date': date.today().isoformat(),

@@ -250,7 +250,7 @@ class _AIChatSheetState extends State<_AIChatSheet> {
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.close_rounded),
+                  icon: const Icon(Icons.close_rounded, color: AppColors.mainText),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -349,6 +349,7 @@ class _AIChatSheetState extends State<_AIChatSheet> {
                   child: TextField(
                     controller: _msgCtrl,
                     onSubmitted: _sendMessage,
+                    style: const TextStyle(fontSize: 13.5, color: AppColors.mainText),
                     decoration: InputDecoration(
                       hintText: 'Ask anything about queue, appointments, or triage...',
                       hintStyle: const TextStyle(fontSize: 13, color: AppColors.secondaryText),

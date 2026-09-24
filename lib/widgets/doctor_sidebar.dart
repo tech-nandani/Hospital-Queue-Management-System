@@ -141,10 +141,24 @@ class DoctorSidebar extends StatelessWidget {
                           vertical: 11,
                         ),
                         decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppColors.primary
-                              : Colors.transparent,
+                          gradient: isSelected
+                              ? const LinearGradient(
+                                  colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                )
+                              : null,
+                          color: isSelected ? null : Colors.transparent,
                           borderRadius: BorderRadius.circular(12),
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: const Color(0xFF2563EB).withValues(alpha: 0.35),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ]
+                              : null,
                         ),
                         child: Row(
                           children: [
@@ -179,7 +193,7 @@ class DoctorSidebar extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   color: isSelected
                                       ? Colors.white.withValues(alpha: 0.25)
-                                      : AppColors.primary.withValues(alpha: 0.2),
+                                      : const Color(0xFF2563EB).withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Text(
@@ -187,7 +201,7 @@ class DoctorSidebar extends StatelessWidget {
                                   style: TextStyle(
                                     color: isSelected
                                         ? Colors.white
-                                        : AppColors.primaryLight,
+                                        : const Color(0xFF60A5FA),
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,
                                   ),

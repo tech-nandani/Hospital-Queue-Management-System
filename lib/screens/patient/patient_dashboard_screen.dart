@@ -1352,8 +1352,8 @@ class _BookTabState extends State<_BookTab> {
   List<Map<String, dynamic>> _doctors = [];
   Map<String, dynamic>? _selectedDept;
   Map<String, dynamic>? _selectedDoctor;
-  DateTime _selectedDate = DateTime.now();
-  String? _selectedTime = '09:30 AM';
+  late DateTime _selectedDate;
+  String? _selectedTime;
   final TextEditingController _notesController = TextEditingController();
 
   bool _loadingDepts = true;
@@ -1376,11 +1376,67 @@ class _BookTabState extends State<_BookTab> {
     '09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM',
     '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM',
     '02:00 PM', '02:30 PM', '03:00 PM', '03:30 PM',
+    '04:00 PM', '04:30 PM', '05:00 PM', '05:30 PM',
   ];
+
+  static DateTime? parseSlotDateTime(String slot, DateTime date) {
+    try {
+      final parts = slot.trim().split(' ');
+      if (parts.length != 2) return null;
+      final timeParts = parts[0].split(':');
+      int hour = int.parse(timeParts[0]);
+      final minute = int.parse(timeParts[1]);
+      final isPm = parts[1].toUpperCase() == 'PM';
+      if (isPm && hour < 12) hour += 12;
+      if (!isPm && hour == 12) hour = 0;
+      return DateTime(date.year, date.month, date.day, hour, minute);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static bool isSlotInPast(String slot, DateTime date) {
+    final now = DateTime.now();
+    final targetDate = DateTime(date.year, date.month, date.day);
+    final today = DateTime(now.year, now.month, now.day);
+    if (targetDate.isBefore(today)) return true;
+    if (targetDate.isAfter(today)) return false;
+
+    final slotDt = parseSlotDateTime(slot, date);
+    if (slotDt == null) return false;
+    return slotDt.isBefore(now);
+  }
+
+  static String? getDefaultSlotForDate(DateTime date, List<String> slots) {
+    final now = DateTime.now();
+    final targetDate = DateTime(date.year, date.month, date.day);
+    final today = DateTime(now.year, now.month, now.day);
+
+    if (targetDate.isAfter(today)) {
+      return slots.isNotEmpty ? slots.first : null;
+    }
+
+    for (final slot in slots) {
+      if (!isSlotInPast(slot, date)) {
+        return slot;
+      }
+    }
+    return null;
+  }
 
   @override
   void initState() {
     super.initState();
+    final now = DateTime.now();
+    final defaultTodaySlot = getDefaultSlotForDate(now, _timeSlots);
+    if (defaultTodaySlot != null) {
+      _selectedDate = now;
+      _selectedTime = defaultTodaySlot;
+    } else {
+      final tomorrow = now.add(const Duration(days: 1));
+      _selectedDate = tomorrow;
+      _selectedTime = getDefaultSlotForDate(tomorrow, _timeSlots);
+    }
     _loadInitialData();
   }
 
@@ -1490,6 +1546,15 @@ class _BookTabState extends State<_BookTab> {
     if (_selectedTime == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please select a preferred time slot.')),
+      );
+      return;
+    }
+    if (isSlotInPast(_selectedTime!, _selectedDate)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('The selected time slot has already passed. Please select an upcoming slot.'),
+          backgroundColor: Color(0xFFDC2626),
+        ),
       );
       return;
     }
@@ -1619,6 +1684,9 @@ class _BookTabState extends State<_BookTab> {
   Future<void> _rescheduleAppointment(PatientAppointment apt) async {
     DateTime tempDate = apt.date.isBefore(DateTime.now()) ? DateTime.now() : apt.date;
     String tempTime = apt.time;
+    if (isSlotInPast(tempTime, tempDate)) {
+      tempTime = getDefaultSlotForDate(tempDate, _timeSlots) ?? _timeSlots.first;
+    }
 
     final updated = await showDialog<bool>(
       context: context,
@@ -1657,14 +1725,22 @@ class _BookTabState extends State<_BookTab> {
                       const SizedBox(height: 8),
                       InkWell(
                         onTap: () async {
+                          final now = DateTime.now();
                           final picked = await showDatePicker(
                             context: context,
-                            firstDate: DateTime.now(),
-                            lastDate: DateTime.now().add(const Duration(days: 90)),
-                            initialDate: tempDate,
+                            firstDate: DateTime(now.year, now.month, now.day),
+                            lastDate: now.add(const Duration(days: 90)),
+                            initialDate: tempDate.isBefore(DateTime(now.year, now.month, now.day))
+                                ? DateTime(now.year, now.month, now.day)
+                                : tempDate,
                           );
                           if (picked != null) {
-                            setDialogState(() => tempDate = picked);
+                            setDialogState(() {
+                              tempDate = picked;
+                              if (isSlotInPast(tempTime, tempDate)) {
+                                tempTime = getDefaultSlotForDate(tempDate, _timeSlots) ?? _timeSlots.first;
+                              }
+                            });
                           }
                         },
                         borderRadius: BorderRadius.circular(10),
@@ -1693,26 +1769,38 @@ class _BookTabState extends State<_BookTab> {
                         spacing: 8,
                         runSpacing: 8,
                         children: _timeSlots.map((slot) {
-                          final isSelected = tempTime == slot;
-                          return InkWell(
-                            onTap: () => setDialogState(() => tempTime = slot),
-                            borderRadius: BorderRadius.circular(16),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 150),
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                              decoration: BoxDecoration(
-                                color: isSelected ? const Color(0xFF1D72FE) : Colors.white,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: isSelected ? const Color(0xFF1D72FE) : const Color(0xFFE2E8F0),
+                          final isPast = isSlotInPast(slot, tempDate);
+                          final isSelected = tempTime == slot && !isPast;
+                          return Tooltip(
+                            message: isPast ? 'This slot has already passed' : slot,
+                            child: InkWell(
+                              onTap: isPast ? null : () => setDialogState(() => tempTime = slot),
+                              borderRadius: BorderRadius.circular(16),
+                              mouseCursor: isPast ? SystemMouseCursors.forbidden : SystemMouseCursors.click,
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 150),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: isPast
+                                      ? const Color(0xFFF1F5F9)
+                                      : (isSelected ? const Color(0xFF1D72FE) : Colors.white),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: isPast
+                                        ? const Color(0xFFE2E8F0)
+                                        : (isSelected ? const Color(0xFF1D72FE) : const Color(0xFFE2E8F0)),
+                                  ),
                                 ),
-                              ),
-                              child: Text(
-                                slot,
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                                  color: isSelected ? Colors.white : const Color(0xFF334155),
+                                child: Text(
+                                  slot,
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                    color: isPast
+                                        ? const Color(0xFF94A3B8)
+                                        : (isSelected ? Colors.white : const Color(0xFF334155)),
+                                    decoration: isPast ? TextDecoration.lineThrough : null,
+                                  ),
                                 ),
                               ),
                             ),
@@ -1729,7 +1817,9 @@ class _BookTabState extends State<_BookTab> {
                   child: const Text('Cancel', style: TextStyle(color: Color(0xFF64748B))),
                 ),
                 FilledButton(
-                  onPressed: () => Navigator.pop(ctx, true),
+                  onPressed: isSlotInPast(tempTime, tempDate)
+                      ? null
+                      : () => Navigator.pop(ctx, true),
                   style: FilledButton.styleFrom(backgroundColor: const Color(0xFF1D72FE)),
                   child: const Text('Confirm Reschedule'),
                 ),
@@ -1811,10 +1901,17 @@ class _BookTabState extends State<_BookTab> {
   }
 
   void _resetForm() {
+    final now = DateTime.now();
+    final defaultTodaySlot = getDefaultSlotForDate(now, _timeSlots);
     setState(() {
       _selectedDoctor = _doctors.isNotEmpty ? _doctors.first : null;
-      _selectedDate = DateTime.now();
-      _selectedTime = '09:30 AM';
+      if (defaultTodaySlot != null) {
+        _selectedDate = now;
+        _selectedTime = defaultTodaySlot;
+      } else {
+        _selectedDate = now.add(const Duration(days: 1));
+        _selectedTime = getDefaultSlotForDate(_selectedDate, _timeSlots);
+      }
       _notesController.clear();
     });
   }
@@ -2229,14 +2326,22 @@ class _BookTabState extends State<_BookTab> {
             const SizedBox(height: 10),
             InkWell(
               onTap: () async {
+                final now = DateTime.now();
                 final picked = await showDatePicker(
                   context: context,
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime.now().add(const Duration(days: 90)),
-                  initialDate: _selectedDate,
+                  firstDate: DateTime(now.year, now.month, now.day),
+                  lastDate: now.add(const Duration(days: 90)),
+                  initialDate: _selectedDate.isBefore(DateTime(now.year, now.month, now.day))
+                      ? DateTime(now.year, now.month, now.day)
+                      : _selectedDate,
                 );
                 if (picked != null) {
-                  setState(() => _selectedDate = picked);
+                  setState(() {
+                    _selectedDate = picked;
+                    if (_selectedTime == null || isSlotInPast(_selectedTime!, picked)) {
+                      _selectedTime = getDefaultSlotForDate(picked, _timeSlots);
+                    }
+                  });
                 }
               },
               borderRadius: BorderRadius.circular(12),
@@ -2269,6 +2374,8 @@ class _BookTabState extends State<_BookTab> {
           ],
         );
 
+        final hasAvailableSlots = _timeSlots.any((slot) => !isSlotInPast(slot, _selectedDate));
+
         final timeWidget = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -2278,46 +2385,124 @@ class _BookTabState extends State<_BookTab> {
               subtitle: 'Available time slots',
             ),
             const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: _timeSlots.map((slot) {
-                final isSelected = _selectedTime == slot;
-                return InkWell(
-                  onTap: () => setState(() => _selectedTime = slot),
-                  borderRadius: BorderRadius.circular(20),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: isSelected ? const Color(0xFF1D72FE) : Colors.white,
+            if (!hasAvailableSlots)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFFBEB),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: const Color(0xFFFDE68A)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.schedule_rounded, color: Color(0xFFD97706), size: 20),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'All slots for today have passed',
+                            style: TextStyle(
+                              fontSize: 13.5,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF92400E),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    const Text(
+                      'Doctor consultation hours for today are closed. Please book for tomorrow or another upcoming date.',
+                      style: TextStyle(fontSize: 12, color: Color(0xFFB45309)),
+                    ),
+                    const SizedBox(height: 10),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        final tomorrow = DateTime.now().add(const Duration(days: 1));
+                        setState(() {
+                          _selectedDate = tomorrow;
+                          _selectedTime = getDefaultSlotForDate(tomorrow, _timeSlots);
+                        });
+                      },
+                      icon: const Icon(Icons.arrow_forward_rounded, size: 16),
+                      label: const Text('Book for Tomorrow', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFD97706),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _timeSlots.map((slot) {
+                  final isPast = isSlotInPast(slot, _selectedDate);
+                  final isSelected = _selectedTime == slot && !isPast;
+                  return Tooltip(
+                    message: isPast ? 'This slot has already passed' : slot,
+                    child: InkWell(
+                      onTap: isPast ? null : () => setState(() => _selectedTime = slot),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isSelected ? const Color(0xFF1D72FE) : const Color(0xFFE2E8F0),
-                        width: isSelected ? 1.5 : 1.0,
-                      ),
-                      boxShadow: isSelected
-                          ? [
-                              BoxShadow(
-                                color: const Color(0xFF1D72FE).withValues(alpha: 0.2),
-                                blurRadius: 6,
-                                offset: const Offset(0, 2),
+                      mouseCursor: isPast ? SystemMouseCursors.forbidden : SystemMouseCursors.click,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 150),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: isPast
+                              ? const Color(0xFFF1F5F9)
+                              : (isSelected ? const Color(0xFF1D72FE) : Colors.white),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: isPast
+                                ? const Color(0xFFE2E8F0)
+                                : (isSelected ? const Color(0xFF1D72FE) : const Color(0xFFCBD5E1)),
+                            width: isSelected ? 1.5 : 1.0,
+                          ),
+                          boxShadow: isSelected
+                              ? [
+                                  BoxShadow(
+                                    color: const Color(0xFF1D72FE).withValues(alpha: 0.2),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ]
+                              : null,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (isPast) ...[
+                              const Icon(Icons.history_toggle_off_rounded, size: 13, color: Color(0xFF94A3B8)),
+                              const SizedBox(width: 4),
+                            ],
+                            Text(
+                              slot,
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: isSelected ? FontWeight.w700 : (isPast ? FontWeight.w400 : FontWeight.w500),
+                                color: isPast
+                                    ? const Color(0xFF94A3B8)
+                                    : (isSelected ? Colors.white : const Color(0xFF334155)),
+                                decoration: isPast ? TextDecoration.lineThrough : null,
+                                decorationColor: const Color(0xFF94A3B8),
                               ),
-                            ]
-                          : null,
-                    ),
-                    child: Text(
-                      slot,
-                      style: TextStyle(
-                        fontSize: 11.5,
-                        fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                        color: isSelected ? Colors.white : const Color(0xFF334155),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                );
-              }).toList(),
-            ),
+                  );
+                }).toList(),
+              ),
           ],
         );
 
@@ -3021,6 +3206,21 @@ class _AppointmentsTab extends StatelessWidget {
       initialTime: TimeOfDay.now(),
     );
     if (time == null || !context.mounted) return;
+
+    final now = DateTime.now();
+    final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
+    if (isToday) {
+      final chosenDateTime = DateTime(date.year, date.month, date.day, time.hour, time.minute);
+      if (chosenDateTime.isBefore(now)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Cannot reschedule to a past time for today. Please pick a future time.'),
+            backgroundColor: Color(0xFFDC2626),
+          ),
+        );
+        return;
+      }
+    }
 
     final formattedTime = time.format(context);
     await service.rescheduleAppointmentWithBackend(

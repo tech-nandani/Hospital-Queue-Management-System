@@ -252,13 +252,13 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
     final isTablet = width >= 768 && width < 1024;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFFF4F7FC),
       floatingActionButton: const CareFlowFloatingAI(role: 'Doctor'),
       appBar: isDesktop
           ? null
           : AppBar(
               backgroundColor: Colors.white,
-              foregroundColor: AppColors.mainText,
+              foregroundColor: const Color(0xFF0F172A),
               elevation: 0,
               title: Row(
                 children: [
@@ -386,12 +386,12 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                 child: const Icon(Icons.person_rounded, color: AppColors.primary, size: 32),
               ),
               const SizedBox(height: 12),
-              Text(_effectiveDoctorName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.mainText)),
-              Text('$_effectiveDepartment • $_doctorSpecialty', style: const TextStyle(fontSize: 13, color: AppColors.secondaryText)),
+              Text(_effectiveDoctorName, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
+              Text('$_effectiveDepartment • $_doctorSpecialty', style: const TextStyle(fontSize: 13, color: Color(0xFF64748B))),
               const SizedBox(height: 20),
               ListTile(
-                leading: const Icon(Icons.settings_outlined, color: AppColors.mainText),
-                title: const Text('Account Settings'),
+                leading: const Icon(Icons.settings_outlined, color: Color(0xFF334155)),
+                title: const Text('Account Settings', style: TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF0F172A))),
                 onTap: () {
                   Navigator.pop(ctx);
                   setState(() => _selectedIndex = 10);
@@ -423,7 +423,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 24),
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(bottom: BorderSide(color: AppColors.border, width: 1)),
+        border: Border(bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1)),
       ),
       child: Row(
         children: [
@@ -437,10 +437,11 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                       height: 42,
                       child: TextField(
                         onChanged: (v) => setState(() => _searchQuery = v),
+                        style: const TextStyle(fontSize: 13, color: Color(0xFF0F172A), fontWeight: FontWeight.w500),
                         decoration: InputDecoration(
                           hintText: 'Search patients, tokens, appointments, or records...',
-                          hintStyle: const TextStyle(fontSize: 12.5, color: AppColors.secondaryText),
-                          prefixIcon: const Icon(Icons.search_rounded, size: 20, color: AppColors.secondaryText),
+                          hintStyle: const TextStyle(fontSize: 12.5, color: Color(0xFF64748B)),
+                          prefixIcon: const Icon(Icons.search_rounded, size: 20, color: Color(0xFF2563EB)),
                           filled: true,
                           fillColor: const Color(0xFFF8FAFC),
                           contentPadding: EdgeInsets.zero,
@@ -473,16 +474,16 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFFF8FAFC),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
+              border: Border.all(color: const Color(0xFFCBD5E1)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.calendar_today_rounded, size: 14, color: AppColors.primary),
+                const Icon(Icons.calendar_today_rounded, size: 14, color: Color(0xFF2563EB)),
                 const SizedBox(width: 8),
                 Text(
                   '$dateHeaderStr, $timeHeaderStr',
-                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.mainText),
+                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: Color(0xFF0F172A)),
                 ),
               ],
             ),
@@ -495,7 +496,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
               smallSize: 8,
               backgroundColor: AppColors.error,
               isLabelVisible: true,
-              child: Icon(Icons.notifications_outlined, color: AppColors.mainText, size: 22),
+              child: Icon(Icons.notifications_outlined, color: Color(0xFF334155), size: 22),
             ),
             onPressed: () => _showNotificationsModal(context),
           ),
@@ -521,16 +522,16 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                       children: [
                         Text(
                           _effectiveDoctorName,
-                          style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.mainText),
+                          style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: Color(0xFF0F172A)),
                         ),
                         Text(
                           _effectiveDepartment,
-                          style: const TextStyle(fontSize: 10.5, color: AppColors.secondaryText),
+                          style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: Color(0xFF2563EB)),
                         ),
                       ],
                     ),
                     const SizedBox(width: 6),
-                    const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: AppColors.secondaryText),
+                    const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: Color(0xFF64748B)),
                   ],
                 ],
               ),
@@ -2057,15 +2058,15 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text("Today's Patient Queue", style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.mainText)),
-                  Text('Complete patient triage, status management, and live examination dispatch', style: TextStyle(fontSize: 13, color: AppColors.secondaryText)),
+                  Text("Today's Patient Queue", style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
+                  Text('Complete patient triage, status management, and live examination dispatch', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
                 ],
               ),
             ),
             ElevatedButton.icon(
               onPressed: _callNextPatient,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
+                backgroundColor: const Color(0xFF2563EB),
                 foregroundColor: Colors.white,
                 minimumSize: const Size(0, 42),
                 padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
@@ -2126,8 +2127,8 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Doctor Appointments', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.mainText)),
-                  Text('Comprehensive appointments roster and consultation schedule', style: TextStyle(fontSize: 13, color: AppColors.secondaryText)),
+                  Text('Doctor Appointments', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
+                  Text('Comprehensive appointments roster and consultation schedule', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
                 ],
               ),
             ),
@@ -2153,9 +2154,9 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                 label: Text(status),
                 selected: isSel,
                 onSelected: (_) => setState(() => _appointmentStatusFilter = status),
-                selectedColor: AppColors.primary,
+                selectedColor: const Color(0xFF2563EB),
                 labelStyle: TextStyle(
-                  color: isSel ? Colors.white : AppColors.mainText,
+                  color: isSel ? Colors.white : const Color(0xFF334155),
                   fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
                   fontSize: 12.5,
                 ),
@@ -2193,15 +2194,15 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                 elevation: 0,
                 color: Colors.white,
                 margin: const EdgeInsets.only(bottom: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: AppColors.border)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Color(0xFFE2E8F0))),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
                       CircleAvatar(
                         radius: 22,
-                        backgroundColor: AppColors.primaryLight,
-                        child: Text('#${p.token}', style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primary)),
+                        backgroundColor: const Color(0xFFEFF6FF),
+                        child: Text('#${p.token}', style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF2563EB))),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -2210,13 +2211,13 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                           children: [
                             Row(
                               children: [
-                                Text(p.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.mainText)),
+                                Text(p.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF0F172A))),
                                 const SizedBox(width: 8),
                                 _buildPriorityBadge(p.priority),
                               ],
                             ),
                             const SizedBox(height: 3),
-                            Text('Time: ${p.time} • ${p.age} yrs • Reason: ${p.reason}', style: const TextStyle(fontSize: 12, color: AppColors.secondaryText)),
+                            Text('Time: ${p.time} • ${p.age} yrs • Reason: ${p.reason}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
                           ],
                         ),
                       ),
@@ -2231,7 +2232,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                         ElevatedButton(
                           onPressed: () => _startConsultationForPatient(p),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
+                            backgroundColor: const Color(0xFF2563EB),
                             foregroundColor: Colors.white,
                             minimumSize: const Size(0, 32),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -2272,8 +2273,8 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
-        const Text('Patient Clinical Directory', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.mainText)),
-        const Text('Search registered patients, view past visits, diagnoses, and medical histories', style: TextStyle(fontSize: 13, color: AppColors.secondaryText)),
+        const Text('Patient Clinical Directory', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
+        const Text('Search registered patients, view past visits, diagnoses, and medical histories', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
         const SizedBox(height: 20),
         if (filtered.isEmpty)
           _buildEmptyState(
@@ -2286,15 +2287,15 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                 elevation: 0,
                 color: Colors.white,
                 margin: const EdgeInsets.only(bottom: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: AppColors.border)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Color(0xFFE2E8F0))),
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
                   leading: CircleAvatar(
                     backgroundColor: AppColors.secondaryLight,
                     child: const Icon(Icons.person_rounded, color: AppColors.secondary),
                   ),
-                  title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5)),
-                  subtitle: Text('Mobile: ${p.phone.isEmpty ? "N/A" : p.phone} • Gender: ${p.gender} • Age: ${p.age}y\nLatest Symptom: ${p.reason}'),
+                  title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14.5, color: Color(0xFF0F172A))),
+                  subtitle: Text('Mobile: ${p.phone.isEmpty ? "N/A" : p.phone} • Gender: ${p.gender} • Age: ${p.age}y\nLatest Symptom: ${p.reason}', style: const TextStyle(color: Color(0xFF64748B))),
                   isThreeLine: true,
                   trailing: OutlinedButton.icon(
                     onPressed: () => _viewPatientDetailsDialog(p),
@@ -2346,8 +2347,8 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
-        const Text('Consultation Records & Medical History', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.mainText)),
-        const Text('Archived clinical notes, diagnoses, and digital prescriptions recorded for your patients', style: TextStyle(fontSize: 13, color: AppColors.secondaryText)),
+        const Text('Consultation Records & Medical History', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
+        const Text('Archived clinical notes, diagnoses, and digital prescriptions recorded for your patients', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
         const SizedBox(height: 20),
         if (filtered.isEmpty)
           _buildEmptyState(
@@ -2360,7 +2361,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                 elevation: 0,
                 color: Colors.white,
                 margin: const EdgeInsets.only(bottom: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: AppColors.border)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Color(0xFFE2E8F0))),
                 child: Padding(
                   padding: const EdgeInsets.all(18),
                   child: Column(
@@ -2377,8 +2378,8 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(p.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
-                                Text('${p.age}y • ${p.gender} • Token #${p.token} • ${p.time}', style: const TextStyle(fontSize: 11, color: AppColors.secondaryText)),
+                                Text(p.name, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: Color(0xFF0F172A))),
+                                Text('${p.age}y • ${p.gender} • Token #${p.token} • ${p.time}', style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
                               ],
                             ),
                           ),
@@ -2386,16 +2387,16 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      const Divider(color: AppColors.border),
+                      const Divider(color: Color(0xFFE2E8F0)),
                       const SizedBox(height: 8),
-                      Text('Primary Diagnosis: ${p.diagnosis?.isNotEmpty == true ? p.diagnosis! : "Clinical examination conducted"}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                      Text('Primary Diagnosis: ${p.diagnosis?.isNotEmpty == true ? p.diagnosis! : "Clinical examination conducted"}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Color(0xFF0F172A))),
                       const SizedBox(height: 4),
-                      Text('Clinical Notes: ${p.clinicalNotes?.isNotEmpty == true ? p.clinicalNotes! : "Patient stable. Follow-up advised if symptoms recur."}', style: const TextStyle(fontSize: 12, color: AppColors.secondaryText)),
+                      Text('Clinical Notes: ${p.clinicalNotes?.isNotEmpty == true ? p.clinicalNotes! : "Patient stable. Follow-up advised if symptoms recur."}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
                       const SizedBox(height: 6),
-                      Text('Prescription: ${p.prescription?.isNotEmpty == true ? p.prescription! : "Standard supportive medication"}', style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600)),
+                      Text('Prescription: ${p.prescription?.isNotEmpty == true ? p.prescription! : "Standard supportive medication"}', style: const TextStyle(fontSize: 12, color: Color(0xFF2563EB), fontWeight: FontWeight.w600)),
                       if (p.treatmentAdvice != null && p.treatmentAdvice!.isNotEmpty) ...[
                         const SizedBox(height: 4),
-                        Text('Advice: ${p.treatmentAdvice}', style: const TextStyle(fontSize: 11.5, color: AppColors.mainText)),
+                        Text('Advice: ${p.treatmentAdvice}', style: const TextStyle(fontSize: 11.5, color: Color(0xFF0F172A))),
                       ],
                     ],
                   ),
@@ -2416,25 +2417,25 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
-        const Text('Digital Prescriptions Module', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.mainText)),
-        const Text('Generate, digitally sign, and issue structured prescriptions for patient appointments', style: TextStyle(fontSize: 13, color: AppColors.secondaryText)),
+        const Text('Digital Prescriptions Module', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
+        const Text('Generate, digitally sign, and issue structured prescriptions for patient appointments', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
         const SizedBox(height: 20),
 
         // 1. GENERATE NEW RX CARD
         Card(
           elevation: 0,
           color: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: const BorderSide(color: AppColors.border)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18), side: const BorderSide(color: Color(0xFFE2E8F0))),
           child: Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
+                const Row(
                   children: [
-                    const Icon(Icons.receipt_long_rounded, color: AppColors.primary, size: 22),
-                    const SizedBox(width: 10),
-                    const Text('Create New Digital Prescription', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.mainText)),
+                    Icon(Icons.receipt_long_rounded, color: Color(0xFF2563EB), size: 22),
+                    SizedBox(width: 10),
+                    Text('Create New Digital Prescription', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -2445,8 +2446,9 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                   decoration: InputDecoration(
                     labelText: 'Select Patient from Queue/Appointments *',
                     filled: true,
-                    fillColor: AppColors.background,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
+                    fillColor: const Color(0xFFF8FAFC),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
                   ),
                   items: availablePatients.map((p) => DropdownMenuItem(
                     value: p,
@@ -2457,7 +2459,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                 const SizedBox(height: 20),
 
                 // Structured Medicine Rows
-                const Text('Medications List (Rx)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.mainText)),
+                const Text('Medications List (Rx)', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF0F172A))),
                 const SizedBox(height: 12),
 
                 ...List.generate(_rxMedications.length, (index) {
@@ -2466,18 +2468,18 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                     margin: const EdgeInsets.only(bottom: 12),
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: AppColors.background,
+                      color: const Color(0xFFF8FAFC),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.border),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            CircleAvatar(radius: 10, backgroundColor: AppColors.primary, child: Text('${index + 1}', style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w800))),
+                            CircleAvatar(radius: 10, backgroundColor: const Color(0xFF2563EB), child: Text('${index + 1}', style: const TextStyle(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w800))),
                             const SizedBox(width: 8),
-                            const Text('Medication Entry', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+                            const Text('Medication Entry', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF0F172A))),
                             const Spacer(),
                             if (_rxMedications.length > 1)
                               IconButton(
@@ -2596,7 +2598,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
         const SizedBox(height: 24),
 
         // 2. RECENTLY ISSUED PRESCRIPTIONS
-        const Text('Recently Issued Prescriptions History', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.mainText)),
+        const Text('Recently Issued Prescriptions History', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
         const SizedBox(height: 12),
 
         if (issuedPrescriptions.isEmpty)
@@ -2610,11 +2612,11 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                 elevation: 0,
                 color: Colors.white,
                 margin: const EdgeInsets.only(bottom: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: AppColors.border)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Color(0xFFE2E8F0))),
                 child: ListTile(
-                  leading: CircleAvatar(backgroundColor: AppColors.primaryLight, child: const Icon(Icons.medication_rounded, color: AppColors.primary)),
-                  title: Text('${p.name} (Token #${p.token})', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                  subtitle: Text('Rx: ${p.prescription}\nIssued on: ${p.time} • Dept: ${p.department}'),
+                  leading: CircleAvatar(backgroundColor: const Color(0xFFEFF6FF), child: const Icon(Icons.medication_rounded, color: Color(0xFF2563EB))),
+                  title: Text('${p.name} (Token #${p.token})', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Color(0xFF0F172A))),
+                  subtitle: Text('Rx: ${p.prescription}\nIssued on: ${p.time} • Dept: ${p.department}', style: const TextStyle(color: Color(0xFF64748B))),
                   isThreeLine: true,
                   trailing: FilledButton.tonal(
                     onPressed: () => _showPrescriptionPreviewDialog(p),
@@ -2675,16 +2677,19 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
           children: [
             Container(
               padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(8)),
-              child: const Icon(Icons.local_hospital_rounded, color: AppColors.primary, size: 22),
+              decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(8)),
+              child: const Icon(Icons.local_hospital_rounded, color: Color(0xFF2563EB), size: 22),
             ),
             const SizedBox(width: 10),
-            const Expanded(
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('City Care Hospital, Lucknow', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
-                  Text('Outpatient Department Digital Prescription', style: TextStyle(fontSize: 11, color: AppColors.secondaryText)),
+                  Text(
+                    _effectiveDepartment.isNotEmpty ? '$_effectiveDepartment OPD Clinic' : 'CareFlow Medical Center',
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: Color(0xFF0F172A)),
+                  ),
+                  const Text('Outpatient Department Digital Prescription', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
                 ],
               ),
             ),
@@ -2693,7 +2698,11 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
         content: SingleChildScrollView(
           child: Container(
             padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -2701,25 +2710,25 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Doctor: $_effectiveDoctorName', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5)),
-                    Text('Date: ${_month(DateTime.now().month)} ${DateTime.now().day}, ${DateTime.now().year}', style: const TextStyle(fontSize: 11, color: AppColors.secondaryText)),
+                    Text('Doctor: $_effectiveDoctorName', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12.5, color: Color(0xFF0F172A))),
+                    Text('Date: ${_month(DateTime.now().month)} ${DateTime.now().day}, ${DateTime.now().year}', style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
                   ],
                 ),
-                Text('$_effectiveDepartment • $_doctorQualification', style: const TextStyle(fontSize: 11, color: AppColors.secondaryText)),
-                const Divider(height: 18),
-                Text('Patient: ${p.name} (#${p.token})', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5)),
-                Text('Age / Gender: ${p.age}y / ${p.gender} • Mobile: ${p.phone.isEmpty ? "N/A" : p.phone}', style: const TextStyle(fontSize: 11.5)),
-                if (p.reason.isNotEmpty) Text('Clinical Reason: ${p.reason}', style: const TextStyle(fontSize: 11.5, color: AppColors.secondaryText)),
+                Text('$_effectiveDepartment • $_doctorQualification', style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                const Divider(height: 18, color: Color(0xFFE2E8F0)),
+                Text('Patient: ${p.name} (#${p.token})', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5, color: Color(0xFF0F172A))),
+                Text('Age / Gender: ${p.age}y / ${p.gender} • Mobile: ${p.phone.isEmpty ? "N/A" : p.phone}', style: const TextStyle(fontSize: 11.5, color: Color(0xFF334155))),
+                if (p.reason.isNotEmpty) Text('Clinical Reason: ${p.reason}', style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
                 const SizedBox(height: 14),
-                const Text('Rx Medications:', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppColors.primary)),
+                const Text('Rx Medications:', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Color(0xFF2563EB))),
                 const SizedBox(height: 6),
-                Text(p.prescription?.isNotEmpty == true ? p.prescription! : "1. Tab Paracetamol 650mg - 1-0-1 after food (3 days)\n2. Tab Cetirizine 10mg - 0-0-1 at night (5 days)", style: const TextStyle(fontSize: 12, height: 1.4)),
+                Text(p.prescription?.isNotEmpty == true ? p.prescription! : "1. Tab Paracetamol 650mg - 1-0-1 after food (3 days)\n2. Tab Cetirizine 10mg - 0-0-1 at night (5 days)", style: const TextStyle(fontSize: 12, height: 1.4, color: Color(0xFF0F172A))),
                 const SizedBox(height: 12),
-                if (p.treatmentAdvice?.isNotEmpty == true) Text('Advice: ${p.treatmentAdvice}', style: const TextStyle(fontSize: 11.5, fontStyle: FontStyle.italic)),
-                const Divider(height: 20),
+                if (p.treatmentAdvice?.isNotEmpty == true) Text('Advice: ${p.treatmentAdvice}', style: const TextStyle(fontSize: 11.5, fontStyle: FontStyle.italic, color: Color(0xFF334155))),
+                const Divider(height: 20, color: Color(0xFFE2E8F0)),
                 const Align(
                   alignment: Alignment.centerRight,
-                  child: Text('Digitally Verified & Signed by Doctor\nCareFlow Health System', textAlign: TextAlign.right, style: TextStyle(fontSize: 10, color: AppColors.secondaryText)),
+                  child: Text('Digitally Verified & Signed by Doctor\nCareFlow Health System', textAlign: TextAlign.right, style: TextStyle(fontSize: 10, color: Color(0xFF64748B))),
                 ),
               ],
             ),
@@ -2750,15 +2759,15 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
-        const Text('Consultation Hours & Clinic Schedule', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.mainText)),
-        const Text('Configure clinic availability, consultation windows, and monitor today’s patient time slots', style: TextStyle(fontSize: 13, color: AppColors.secondaryText)),
+        const Text('Consultation Hours & Clinic Schedule', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
+        const Text('Configure clinic availability, consultation windows, and monitor today’s patient time slots', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
         const SizedBox(height: 20),
 
         // CLINIC STATUS CARD
         Card(
           elevation: 0,
           color: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: AppColors.border)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Color(0xFFE2E8F0))),
           child: Padding(
             padding: const EdgeInsets.all(18),
             child: Row(
@@ -2773,9 +2782,9 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Clinic Operational Hours: $_consultationHours', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                      Text('Clinic Operational Hours: $_consultationHours', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: Color(0xFF0F172A))),
                       const SizedBox(height: 2),
-                      const Text('Standard Lunch & Clinical Break: 01:00 PM - 02:00 PM', style: TextStyle(fontSize: 11.5, color: AppColors.secondaryText)),
+                      const Text('Standard Lunch & Clinical Break: 01:00 PM - 02:00 PM', style: TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
                     ],
                   ),
                 ),
@@ -2799,7 +2808,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
         const SizedBox(height: 20),
 
         // TODAY'S TIMELINE SLOTS
-        const Text("Today's Patient Time Slot Schedule", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.mainText)),
+        const Text("Today's Patient Time Slot Schedule", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
         const SizedBox(height: 12),
 
         if (todayAppointments.isEmpty)
@@ -2813,23 +2822,23 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                 elevation: 0,
                 color: Colors.white,
                 margin: const EdgeInsets.only(bottom: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: AppColors.border)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14), side: const BorderSide(color: Color(0xFFE2E8F0))),
                 child: Padding(
                   padding: const EdgeInsets.all(14),
                   child: Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(8)),
-                        child: Text(apt.time, style: const TextStyle(fontWeight: FontWeight.w800, color: AppColors.primary, fontSize: 12)),
+                        decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(8)),
+                        child: Text(apt.time, style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF2563EB), fontSize: 12)),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('${apt.name} (Token #${apt.token})', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
-                            Text('Clinical Reason: ${apt.reason}', style: const TextStyle(fontSize: 11.5, color: AppColors.secondaryText)),
+                            Text('${apt.name} (Token #${apt.token})', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: Color(0xFF0F172A))),
+                            Text('Clinical Reason: ${apt.reason}', style: const TextStyle(fontSize: 11.5, color: Color(0xFF64748B))),
                           ],
                         ),
                       ),
@@ -2863,8 +2872,8 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Reports & Clinical Analytics', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.mainText)),
-                  Text('Real-time clinical throughput, triage statistics, and consultation metrics', style: TextStyle(fontSize: 13, color: AppColors.secondaryText)),
+                  Text('Reports & Clinical Analytics', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
+                  Text('Real-time clinical throughput, triage statistics, and consultation metrics', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
                 ],
               ),
             ),
@@ -2921,8 +2930,8 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Notifications & Triage Alerts', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.mainText)),
-                  Text('Live synchronized alerts and clinical queue updates for your consultation room', style: TextStyle(fontSize: 13, color: AppColors.secondaryText)),
+                  Text('Notifications & Triage Alerts', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
+                  Text('Live synchronized alerts and clinical queue updates for your consultation room', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
                 ],
               ),
             ),
@@ -2944,12 +2953,12 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                 elevation: 0,
                 color: Colors.white,
                 margin: const EdgeInsets.only(bottom: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: AppColors.border)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Color(0xFFE2E8F0))),
                 child: ListTile(
                   leading: CircleAvatar(backgroundColor: n.color.withValues(alpha: 0.12), child: Icon(n.icon, color: n.color, size: 20)),
-                  title: Text(n.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
-                  subtitle: Text(n.subtitle, style: const TextStyle(fontSize: 12, color: AppColors.secondaryText)),
-                  trailing: Text(n.time, style: const TextStyle(fontSize: 11, color: AppColors.secondaryText)),
+                  title: Text(n.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: Color(0xFF0F172A))),
+                  subtitle: Text(n.subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                  trailing: Text(n.time, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
                 ),
               )),
       ],
@@ -2964,32 +2973,32 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
     return ListView(
       padding: const EdgeInsets.all(24),
       children: [
-        const Text('Doctor Settings', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.mainText)),
-        const Text('Workspace preferences and consultation configurations', style: TextStyle(fontSize: 13, color: AppColors.secondaryText)),
+        const Text('Doctor Settings', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
+        const Text('Workspace preferences and consultation configurations', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
         const SizedBox(height: 20),
         Card(
           elevation: 0,
           color: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: AppColors.border)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Color(0xFFE2E8F0))),
           child: Column(
             children: [
               SwitchListTile(
-                title: const Text('Audio Announcement on Call Next', style: TextStyle(fontWeight: FontWeight.w700)),
-                subtitle: const Text('Play chime when calling patient to consultation room'),
+                title: const Text('Audio Announcement on Call Next', style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF0F172A))),
+                subtitle: const Text('Play chime when calling patient to consultation room', style: TextStyle(color: Color(0xFF64748B))),
                 value: true,
                 onChanged: (v) {},
               ),
-              const Divider(height: 1, color: AppColors.border),
+              const Divider(height: 1, color: Color(0xFFE2E8F0)),
               SwitchListTile(
-                title: const Text('Auto-advance Queue on Complete', style: TextStyle(fontWeight: FontWeight.w700)),
-                subtitle: const Text('Automatically display next waiting token upon completing consultation'),
+                title: const Text('Auto-advance Queue on Complete', style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF0F172A))),
+                subtitle: const Text('Automatically display next waiting token upon completing consultation', style: TextStyle(color: Color(0xFF64748B))),
                 value: false,
                 onChanged: (v) {},
               ),
-              const Divider(height: 1, color: AppColors.border),
+              const Divider(height: 1, color: Color(0xFFE2E8F0)),
               ListTile(
-                title: const Text('Active Doctor Profile', style: TextStyle(fontWeight: FontWeight.w700)),
-                subtitle: Text('$_effectiveDoctorName • $_effectiveDepartment • ID: $_effectiveDoctorId'),
+                title: const Text('Active Doctor Profile', style: TextStyle(fontWeight: FontWeight.w700, color: Color(0xFF0F172A))),
+                subtitle: Text('$_effectiveDoctorName • $_effectiveDepartment • ID: $_effectiveDoctorId', style: const TextStyle(color: Color(0xFF64748B))),
                 trailing: const Icon(Icons.verified_user_rounded, color: AppColors.success),
               ),
             ],
@@ -3096,8 +3105,8 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 120, child: Text(label, style: const TextStyle(fontSize: 12, color: AppColors.secondaryText, fontWeight: FontWeight.w600))),
-          Expanded(child: Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.mainText))),
+          SizedBox(width: 120, child: Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w600))),
+          Expanded(child: Text(value, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF0F172A)))),
         ],
       ),
     );
@@ -3118,9 +3127,9 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
           children: [
             Row(
               children: [
-                const Icon(Icons.notifications_active_rounded, color: AppColors.primary),
+                const Icon(Icons.notifications_active_rounded, color: Color(0xFF2563EB)),
                 const SizedBox(width: 8),
-                const Text('Live Triage & Queue Alerts', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                const Text('Live Triage & Queue Alerts', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: Color(0xFF0F172A))),
                 const Spacer(),
                 TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Close')),
               ],
@@ -3129,7 +3138,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
             if (notifications.isEmpty)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 24),
-                child: Center(child: Text('No new notifications.', style: TextStyle(color: AppColors.secondaryText))),
+                child: Center(child: Text('No new notifications.', style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w500))),
               )
             else
               ...notifications.take(4).map((n) => Padding(
@@ -3137,8 +3146,8 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
                     child: ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: CircleAvatar(backgroundColor: n.color.withValues(alpha: 0.12), child: Icon(n.icon, color: n.color, size: 20)),
-                      title: Text(n.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5)),
-                      subtitle: Text(n.subtitle, style: const TextStyle(fontSize: 12, color: AppColors.secondaryText)),
+                      title: Text(n.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: Color(0xFF0F172A))),
+                      subtitle: Text(n.subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
                     ),
                   )),
           ],
@@ -3206,11 +3215,18 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
       child: Center(
         child: Column(
           children: [
-            Icon(icon, size: 42, color: AppColors.secondaryText.withValues(alpha: 0.5)),
-            const SizedBox(height: 10),
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: AppColors.mainText)),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: const BoxDecoration(
+                color: Color(0xFFEFF6FF),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 28, color: const Color(0xFF2563EB)),
+            ),
+            const SizedBox(height: 12),
+            Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5, color: Color(0xFF0F172A))),
             const SizedBox(height: 4),
-            Text(subtitle, style: const TextStyle(fontSize: 12, color: AppColors.secondaryText)),
+            Text(subtitle, style: const TextStyle(fontSize: 12, color: Color(0xFF64748B), fontWeight: FontWeight.w500), textAlign: TextAlign.center),
           ],
         ),
       ),
@@ -3324,14 +3340,26 @@ class _ConsultationScreenWidgetState extends State<_ConsultationScreenWidget> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.medical_services_outlined, size: 56, color: AppColors.secondaryText),
-            const SizedBox(height: 14),
-            const Text('No Patient Selected for Consultation', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.mainText)),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: const BoxDecoration(
+                color: Color(0xFFEFF6FF),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.medical_services_outlined, size: 48, color: Color(0xFF2563EB)),
+            ),
+            const SizedBox(height: 18),
+            const Text('No Patient Selected for Consultation', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
             const SizedBox(height: 6),
-            const Text('Select a waiting patient from Today\'s Queue or click "Call Next" to begin examination.', style: TextStyle(fontSize: 13, color: AppColors.secondaryText)),
+            const Text('Select a waiting patient from Today\'s Queue or click "Call Next" to begin examination.', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
             const SizedBox(height: 20),
             FilledButton.icon(
               onPressed: () => QueueService.instance.callNextPatient(),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF2563EB),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
               icon: const Icon(Icons.campaign_rounded),
               label: const Text('Call Next Patient in Queue'),
             ),
@@ -3350,10 +3378,10 @@ class _ConsultationScreenWidgetState extends State<_ConsultationScreenWidget> {
           Container(
             margin: const EdgeInsets.only(bottom: 16),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.border)),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: const Color(0xFFE2E8F0))),
             child: Row(
               children: [
-                const Text('Switch Patient:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.secondaryText)),
+                const Text('Switch Patient:', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF64748B))),
                 const SizedBox(width: 12),
                 Expanded(
                   child: DropdownButton<QueuePatient>(
@@ -3362,7 +3390,7 @@ class _ConsultationScreenWidgetState extends State<_ConsultationScreenWidget> {
                     underline: const SizedBox(),
                     items: widget.availablePatients.map((pat) => DropdownMenuItem(
                       value: pat,
-                      child: Text('${pat.name} (Token #${pat.token}) - ${pat.status}', style: const TextStyle(fontSize: 13)),
+                      child: Text('${pat.name} (Token #${pat.token}) - ${pat.status}', style: const TextStyle(fontSize: 13, color: Color(0xFF0F172A))),
                     )).toList(),
                     onChanged: (pat) {
                       if (pat != null) widget.onSelectPatient(pat);
@@ -3379,14 +3407,21 @@ class _ConsultationScreenWidgetState extends State<_ConsultationScreenWidget> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
           child: Row(
             children: [
               CircleAvatar(
                 radius: 28,
-                backgroundColor: AppColors.primaryLight,
-                child: Text('#${p.token}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.primary)),
+                backgroundColor: const Color(0xFFEFF6FF),
+                child: Text('#${p.token}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF2563EB))),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -3395,19 +3430,19 @@ class _ConsultationScreenWidgetState extends State<_ConsultationScreenWidget> {
                   children: [
                     Row(
                       children: [
-                        Text(p.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppColors.mainText)),
+                        Text(p.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
                         const SizedBox(width: 10),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                          decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(10)),
-                          child: Text(p.status, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: AppColors.primary)),
+                          decoration: BoxDecoration(color: const Color(0xFFEFF6FF), borderRadius: BorderRadius.circular(10)),
+                          child: Text(p.status, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800, color: Color(0xFF2563EB))),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Text('Age: ${p.age} yrs • Gender: ${p.gender} • Mobile: ${p.phone.isEmpty ? "N/A" : p.phone} • Dept: ${p.department}', style: const TextStyle(fontSize: 12, color: AppColors.secondaryText)),
+                    Text('Age: ${p.age} yrs • Gender: ${p.gender} • Mobile: ${p.phone.isEmpty ? "N/A" : p.phone} • Dept: ${p.department}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
                     const SizedBox(height: 2),
-                    Text('Reported Symptoms: ${p.reason}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.mainText)),
+                    Text('Reported Symptoms: ${p.reason}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF0F172A))),
                   ],
                 ),
               ),
@@ -3423,82 +3458,101 @@ class _ConsultationScreenWidgetState extends State<_ConsultationScreenWidget> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: const Color(0xFFE2E8F0)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.02),
+                blurRadius: 8,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Clinical Examination & Diagnosis', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.mainText)),
+              const Text('Clinical Examination & Diagnosis', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
               const SizedBox(height: 16),
               TextField(
                 controller: _diagnosisCtrl,
+                style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13.5),
                 decoration: InputDecoration(
                   labelText: 'Primary Diagnosis *',
                   hintText: 'e.g. Acute Bronchitis / Viral Fever',
                   filled: true,
-                  fillColor: AppColors.background,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
+                  fillColor: const Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
                 ),
               ),
               const SizedBox(height: 14),
               TextField(
                 controller: _symptomsCtrl,
                 maxLines: 2,
+                style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13.5),
                 decoration: InputDecoration(
                   labelText: 'Symptoms & Clinical Findings',
                   hintText: 'Cough for 3 days, mild fever, throat irritation...',
                   filled: true,
-                  fillColor: AppColors.background,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
+                  fillColor: const Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
                 ),
               ),
               const SizedBox(height: 14),
               TextField(
                 controller: _notesCtrl,
                 maxLines: 3,
+                style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13.5),
                 decoration: InputDecoration(
                   labelText: 'Doctor Clinical Notes',
                   hintText: 'Chest clear, normal breathing rate, no immediate wheezing...',
                   filled: true,
-                  fillColor: AppColors.background,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
+                  fillColor: const Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
                 ),
               ),
               const SizedBox(height: 20),
-              const Text('Prescription & Treatment Advice', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.mainText)),
+              const Text('Prescription & Treatment Advice', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
               const SizedBox(height: 16),
               TextField(
                 controller: _rxCtrl,
                 maxLines: 3,
+                style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13.5),
                 decoration: InputDecoration(
                   labelText: 'Prescription (Medicines, Dosage, Frequency, Duration) *',
                   hintText: '1. Tab Paracetamol 650mg - 1-0-1 after meals (3 days)\n2. Tab Cetirizine 10mg - 0-0-1 at bedtime (5 days)',
                   filled: true,
-                  fillColor: AppColors.background,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
+                  fillColor: const Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
                 ),
               ),
               const SizedBox(height: 14),
               TextField(
                 controller: _adviceCtrl,
                 maxLines: 2,
+                style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13.5),
                 decoration: InputDecoration(
                   labelText: 'Lifestyle & Dietary Advice',
                   hintText: 'Drink warm water, adequate rest, avoid cold beverages...',
                   filled: true,
-                  fillColor: AppColors.background,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
+                  fillColor: const Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
                 ),
               ),
               const SizedBox(height: 14),
               TextField(
                 controller: _followUpCtrl,
+                style: const TextStyle(color: Color(0xFF0F172A), fontSize: 13.5),
                 decoration: InputDecoration(
                   labelText: 'Follow-up Date / Review',
                   hintText: 'e.g. In 5 days or if symptoms worsen',
                   filled: true,
-                  fillColor: AppColors.background,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.border)),
+                  fillColor: const Color(0xFFF8FAFC),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFCBD5E1))),
                 ),
               ),
               const SizedBox(height: 24),

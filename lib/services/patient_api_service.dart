@@ -265,6 +265,39 @@ class PatientApiService {
     return _decode(response);
   }
 
+  Future<Map<String, dynamic>> staffRegister({
+    required String name,
+    required String email,
+    required String password,
+    required String role,
+    required String department,
+    String? mobile,
+    String? medicalLicenseNumber,
+    String? qualification,
+    String? specialty,
+    String? hospitalName,
+    String? city,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/auth/staff-register/'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'name': name,
+        'email': email,
+        'password': password,
+        'role': role,
+        'department': department,
+        'mobile': mobile ?? '',
+        'medical_license': medicalLicenseNumber ?? '',
+        'qualification': qualification ?? 'MBBS, MD',
+        'specialty': specialty ?? department,
+        'hospital_name': hospitalName ?? '',
+        'city': city ?? '',
+      }),
+    );
+    return _decode(response);
+  }
+
   Future<List<Map<String, dynamic>>> getStaffQueue({
     int? doctorId,
     String? department,

@@ -18,7 +18,7 @@ class PatientAppointment {
     required this.department,
     required this.doctor,
     this.doctorQualification = 'MBBS, MD',
-    this.hospitalName = 'City Care Hospital, Lucknow',
+    this.hospitalName = '',
     this.reason = '',
     required this.date,
     required this.time,
@@ -56,15 +56,47 @@ class PatientAppointment {
       parsedDate = DateTime.now();
     }
 
+    final rawTime = json['appointment_time'] as String? ?? '09:00 AM';
+    String formattedTime = rawTime;
+    if (!rawTime.toUpperCase().contains('AM') && !rawTime.toUpperCase().contains('PM')) {
+      final parts = rawTime.split(':');
+      if (parts.length >= 2) {
+        final hour = int.tryParse(parts[0]) ?? 9;
+        final minute = int.tryParse(parts[1]) ?? 0;
+        final period = hour >= 12 ? 'PM' : 'AM';
+        final displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
+        formattedTime = '${displayHour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} $period';
+      }
+    }
+
+    final docHospital = (doctorDetails?['hospital_name'] as String?)?.trim();
+    final docCity = (doctorDetails?['city'] as String?)?.trim();
+    final rawHospital = (json['hospital_name'] as String?)?.trim();
+
+    String resolvedHospital = '';
+    if (rawHospital != null &&
+        rawHospital.isNotEmpty &&
+        rawHospital != 'City Care Hospital, Lucknow') {
+      resolvedHospital = rawHospital;
+    } else if (docHospital != null && docHospital.isNotEmpty) {
+      resolvedHospital = (docCity != null && docCity.isNotEmpty)
+          ? '$docHospital, $docCity'
+          : docHospital;
+    } else if (deptName.isNotEmpty) {
+      resolvedHospital = '$deptName Clinic';
+    } else {
+      resolvedHospital = 'CareFlow Medical Clinic';
+    }
+
     return PatientAppointment(
       id: json['id']?.toString() ?? '',
       department: deptName,
       doctor: doctorName,
       doctorQualification: doctorQual,
-      hospitalName: json['hospital_name'] as String? ?? 'City Care Hospital, Lucknow',
+      hospitalName: resolvedHospital,
       reason: json['reason'] as String? ?? '',
       date: parsedDate,
-      time: json['appointment_time'] as String? ?? '09:00 AM',
+      time: formattedTime,
       queueNumber: (json['queue_token'] as num?)?.toInt() ?? 1,
       estimatedWaitMinutes: (json['estimated_wait_minutes'] as num?)?.toInt() ?? 15,
       status: mappedStatus,

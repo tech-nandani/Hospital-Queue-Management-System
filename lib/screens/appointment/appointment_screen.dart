@@ -15,6 +15,70 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   DateTime? selectedDate;
   String? selectedTime;
 
+  static const List<String> availableTimeSlots = [
+    "09:00 AM",
+    "09:30 AM",
+    "10:00 AM",
+    "10:30 AM",
+    "11:00 AM",
+    "11:30 AM",
+    "12:00 PM",
+    "12:30 PM",
+    "02:00 PM",
+    "02:30 PM",
+    "03:00 PM",
+    "03:30 PM",
+    "04:00 PM",
+    "04:30 PM",
+    "05:00 PM",
+    "05:30 PM",
+  ];
+
+  static DateTime? _parseSlotDateTime(String slot, DateTime date) {
+    try {
+      final parts = slot.trim().split(' ');
+      if (parts.length != 2) return null;
+      final timeParts = parts[0].split(':');
+      int hour = int.parse(timeParts[0]);
+      final minute = int.parse(timeParts[1]);
+      final isPm = parts[1].toUpperCase() == 'PM';
+      if (isPm && hour < 12) hour += 12;
+      if (!isPm && hour == 12) hour = 0;
+      return DateTime(date.year, date.month, date.day, hour, minute);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static bool _isSlotInPast(String slot, DateTime date) {
+    final now = DateTime.now();
+    final targetDate = DateTime(date.year, date.month, date.day);
+    final today = DateTime(now.year, now.month, now.day);
+    if (targetDate.isBefore(today)) return true;
+    if (targetDate.isAfter(today)) return false;
+
+    final slotDt = _parseSlotDateTime(slot, date);
+    if (slotDt == null) return false;
+    return slotDt.isBefore(now);
+  }
+
+  static String? _getDefaultSlotForDate(DateTime date) {
+    final now = DateTime.now();
+    final targetDate = DateTime(date.year, date.month, date.day);
+    final today = DateTime(now.year, now.month, now.day);
+
+    if (targetDate.isAfter(today)) {
+      return availableTimeSlots.isNotEmpty ? availableTimeSlots.first : null;
+    }
+
+    for (final slot in availableTimeSlots) {
+      if (!_isSlotInPast(slot, date)) {
+        return slot;
+      }
+    }
+    return null;
+  }
+
   // ===========================================================
   // 15 HOSPITAL DEPARTMENTS
   // ===========================================================
@@ -650,63 +714,50 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
         Wrap(
           spacing: 10,
           runSpacing: 10,
+          children: availableTimeSlots.map(
+            (time) {
+              final bool isPast = selectedDate != null && _isSlotInPast(time, selectedDate!);
+              final bool selected = selectedTime == time && !isPast;
 
-          children: [
-            "09:00 AM",
-            "10:00 AM",
-            "11:00 AM",
-            "12:00 PM",
-            "02:00 PM",
-            "03:00 PM",
-            "04:00 PM",
-          ].map(
-                (time) {
-              final bool selected =
-                  selectedTime == time;
-
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    selectedTime = time;
-                  });
-                },
-
-                child: Container(
-                  padding:
-                  const EdgeInsets.symmetric(
-                    horizontal: 18,
-                    vertical: 12,
-                  ),
-
-                  decoration: BoxDecoration(
-                    color: selected
-                        ? const Color(0xff1976D2)
-                        : Colors.white,
-
-                    borderRadius:
-                    BorderRadius.circular(12),
-
+              return Tooltip(
+                message: isPast ? 'This slot has already passed' : time,
+                child: GestureDetector(
+                  onTap: isPast
+                      ? null
+                      : () {
+                          setState(() {
+                            selectedTime = time;
+                          });
+                        },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 12,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isPast
+                          ? const Color(0xffF1F5F9)
+                          : (selected ? const Color(0xff1976D2) : Colors.white),
+                    borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: selected
-                          ? const Color(0xff1976D2)
-                          : const Color(0xffDDE6F0),
+                      color: isPast
+                          ? const Color(0xffE2E8F0)
+                          : (selected ? const Color(0xff1976D2) : const Color(0xffDDE6F0)),
                     ),
                   ),
-
                   child: Text(
                     time,
-
                     style: TextStyle(
-                      color: selected
-                          ? Colors.white
-                          : const Color(0xff344563),
-
-                      fontWeight:
-                      FontWeight.w600,
+                      color: isPast
+                          ? const Color(0xff94A3B8)
+                          : (selected ? Colors.white : const Color(0xff344563)),
+                      fontWeight: FontWeight.w600,
+                      decoration: isPast ? TextDecoration.lineThrough : null,
                     ),
                   ),
                 ),
-              );
+              ),
+            );
             },
           ).toList(),
         ),
@@ -719,16 +770,14 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
   // ===========================================================
 
   Future<void> _selectDate() async {
-    final DateTime? picked =
-    await showDatePicker(
+    final now = DateTime.now();
+    final DateTime? picked = await showDatePicker(
       context: context,
-
-      initialDate: DateTime.now(),
-
-      firstDate: DateTime.now(),
-
-      lastDate:
-      DateTime.now().add(
+      initialDate: selectedDate != null && !selectedDate!.isBefore(DateTime(now.year, now.month, now.day))
+          ? selectedDate!
+          : now,
+      firstDate: DateTime(now.year, now.month, now.day),
+      lastDate: now.add(
         const Duration(days: 90),
       ),
     );
@@ -736,6 +785,9 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
     if (picked != null) {
       setState(() {
         selectedDate = picked;
+        if (selectedTime == null || _isSlotInPast(selectedTime!, picked)) {
+          selectedTime = _getDefaultSlotForDate(picked);
+        }
       });
     }
   }
@@ -1022,13 +1074,19 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       return;
     }
 
-    if (currentStep == 2 &&
-        (selectedDate == null ||
-            selectedTime == null)) {
-      _showMessage(
-        "Please select date and time.",
-      );
-      return;
+    if (currentStep == 2) {
+      if (selectedDate == null || selectedTime == null) {
+        _showMessage(
+          "Please select date and time.",
+        );
+        return;
+      }
+      if (_isSlotInPast(selectedTime!, selectedDate!)) {
+        _showMessage(
+          "The selected time slot has already passed. Please select an upcoming slot.",
+        );
+        return;
+      }
     }
 
     if (currentStep < 3) {

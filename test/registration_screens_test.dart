@@ -197,6 +197,31 @@ void main() {
       expect(find.byType(HospitalWorkflowVisual), findsOneWidget);
       expect(find.text('Staff Onboarding & Hospital Operations'), findsOneWidget);
     });
+
+    testWidgets('DoctorRegisterScreen text inputs have high-contrast dark text styling and typing is visible',
+        (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1200, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: DoctorRegisterScreen(),
+        ),
+      );
+
+      final textFields = tester.widgetList<TextField>(find.byType(TextField));
+      expect(textFields.isNotEmpty, isTrue);
+
+      for (final tf in textFields) {
+        expect(tf.style?.color, const Color(0xFF0F2740));
+      }
+
+      // Enter text into Full Name field
+      await tester.enterText(find.byType(TextField).at(0), 'Dr. Ashok Kumar');
+      await tester.pump();
+      expect(find.text('Dr. Ashok Kumar'), findsOneWidget);
+    });
   });
 
   group('Autofill and Remember Login Tests', () {
