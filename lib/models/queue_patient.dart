@@ -10,12 +10,14 @@ class QueuePatient {
   final String reason;
   final String priority; // Normal, High, Emergency
   final String time;
+  final String? date;
   final String department;
   final String doctorName;
   final int? doctorId;
+  final int? patientId;
   final bool isWalkIn;
 
-  String status; // Waiting, Calling, In Consultation, Completed, Cancelled, No Show, Checked-in
+  String status; // Upcoming, Waiting, Calling, In Consultation, Completed, Cancelled, No Show, Checked-in
   String? diagnosis;
   String? clinicalNotes;
   String? prescription;
@@ -34,9 +36,11 @@ class QueuePatient {
     required this.reason,
     required this.priority,
     required this.time,
+    this.date,
     this.department = 'General Medicine',
     this.doctorName = 'Doctor',
     this.doctorId,
+    this.patientId,
     this.isWalkIn = false,
     this.status = 'Waiting',
     this.diagnosis,
@@ -68,6 +72,8 @@ class QueuePatient {
       mappedStatus = 'No Show';
     } else if (rawStatus == 'checked_in') {
       mappedStatus = 'Checked-in';
+    } else if (rawStatus == 'upcoming') {
+      mappedStatus = 'Upcoming';
     } else {
       mappedStatus = 'Waiting';
     }
@@ -76,8 +82,8 @@ class QueuePatient {
     String mappedPriority = 'Normal';
     if (rawPriority.toLowerCase() == 'emergency') {
       mappedPriority = 'Emergency';
-    } else if (rawPriority.toLowerCase() == 'high') {
-      mappedPriority = 'High';
+    } else if (rawPriority.toLowerCase() == 'high' || rawPriority.toLowerCase() == 'urgent') {
+      mappedPriority = 'Urgent';
     }
 
     int parsedAge = 30;
@@ -100,9 +106,11 @@ class QueuePatient {
       reason: json['reason'] as String? ?? 'General Consultation',
       priority: mappedPriority,
       time: json['appointment_time'] as String? ?? '10:00 AM',
+      date: json['appointment_date'] as String? ?? (json['date'] as String?),
       department: deptName,
       doctorName: doctorName,
       doctorId: (json['doctor'] as num?)?.toInt() ?? (docDetails?['id'] as num?)?.toInt(),
+      patientId: (json['patient'] as num?)?.toInt(),
       isWalkIn: json['is_walk_in'] as bool? ?? false,
       status: mappedStatus,
       diagnosis: json['diagnosis'] as String?,
@@ -125,6 +133,7 @@ class QueuePatient {
     'reason': reason,
     'priority': priority,
     'appointment_time': time,
+    'appointment_date': date,
     'department': department,
     'doctor_name': doctorName,
     'doctor': doctorId,

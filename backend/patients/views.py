@@ -3,7 +3,7 @@ import re
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from django.db import transaction
-from django.db.models import Max
+from django.db.models import Max, Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import generics, permissions, status, viewsets
@@ -134,19 +134,45 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         if doctor_id:
             queryset = queryset.filter(doctor_id=doctor_id)
 
-        department_id = self.request.query_params.get('department')
-        if department_id:
-            queryset = queryset.filter(doctor__department_id=department_id)
+        department_param = self.request.query_params.get('department')
+        if department_param:
+            if department_param.isdigit():
+                queryset = queryset.filter(doctor__department_id=int(department_param))
+            else:
+                queryset = queryset.filter(doctor__department__name__iexact=department_param)
 
         date_param = self.request.query_params.get('date')
         if date_param:
             queryset = queryset.filter(appointment_date=date_param)
 
+        start_date = self.request.query_params.get('start_date')
+        if start_date:
+            queryset = queryset.filter(appointment_date__gte=start_date)
+
+        end_date = self.request.query_params.get('end_date')
+        if end_date:
+            queryset = queryset.filter(appointment_date__lte=end_date)
+
         status_param = self.request.query_params.get('status')
         if status_param:
-            queryset = queryset.filter(status=status_param)
+            queryset = queryset.filter(status__iexact=status_param)
 
-        return queryset
+        priority_param = self.request.query_params.get('priority')
+        if priority_param:
+            queryset = queryset.filter(priority__iexact=priority_param)
+
+        search_query = self.request.query_params.get('search')
+        if search_query:
+            queryset = queryset.filter(
+                Q(patient__first_name__icontains=search_query) |
+                Q(patient__last_name__icontains=search_query) |
+                Q(patient__username__icontains=search_query) |
+                Q(id__icontains=search_query) |
+                Q(queue_token__icontains=search_query) |
+                Q(reason__icontains=search_query)
+            )
+
+        return queryset.order_by('appointment_date', 'appointment_time', 'queue_token')
 
     @transaction.atomic
     def perform_create(self, serializer):

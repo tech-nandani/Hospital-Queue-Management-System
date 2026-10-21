@@ -1,4 +1,5 @@
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -28,6 +29,9 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
   final TextEditingController confirmPasswordController =
       TextEditingController();
 
+  final FocusNode passwordFocusNode = FocusNode();
+  final FocusNode confirmPasswordFocusNode = FocusNode();
+
   String selectedRole = 'Doctor';
   String? selectedDepartment;
   Uint8List? degreeBytes;
@@ -38,7 +42,22 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
   bool _isSubmitting = false;
 
   @override
+  void initState() {
+    super.initState();
+    passwordController.addListener(_onFieldChanged);
+    confirmPasswordController.addListener(_onFieldChanged);
+  }
+
+  void _onFieldChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
   void dispose() {
+    passwordController.removeListener(_onFieldChanged);
+    confirmPasswordController.removeListener(_onFieldChanged);
+    passwordFocusNode.dispose();
+    confirmPasswordFocusNode.dispose();
     nameController.dispose();
     emailController.dispose();
     mobileController.dispose();
@@ -194,11 +213,12 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
               ),
             ],
           ),
-          child: AutofillGroup(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Role Selector
+          child: Builder(
+            builder: (context) {
+              final formContent = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Role Selector
                 _fieldLabel('Select Staff Role', isRequired: true),
                 const SizedBox(height: 10),
                 Row(
@@ -283,7 +303,7 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                   ),
                   cursorColor: const Color(0xFF1976D2),
                   keyboardType: TextInputType.name,
-                  autofillHints: const [AutofillHints.name],
+                  autofillHints: kIsWeb ? null : const [AutofillHints.name],
                   textInputAction: TextInputAction.next,
                   decoration: _inputDecoration(
                     hint: 'Enter your full name',
@@ -305,7 +325,7 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                   ),
                   cursorColor: const Color(0xFF1976D2),
                   keyboardType: TextInputType.emailAddress,
-                  autofillHints: const [AutofillHints.email],
+                  autofillHints: kIsWeb ? null : const [AutofillHints.email],
                   textInputAction: TextInputAction.next,
                   decoration: _inputDecoration(
                     hint: 'Enter your professional email',
@@ -327,7 +347,8 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                   ),
                   cursorColor: const Color(0xFF1976D2),
                   keyboardType: TextInputType.phone,
-                  autofillHints: const [AutofillHints.telephoneNumber],
+                  autofillHints:
+                      kIsWeb ? null : const [AutofillHints.telephoneNumber],
                   textInputAction: TextInputAction.next,
                   decoration: _inputDecoration(
                     hint: 'Enter your mobile number',
@@ -511,6 +532,7 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: passwordController,
+                  focusNode: passwordFocusNode,
                   style: const TextStyle(
                     color: Color(0xFF0F2740),
                     fontSize: 15,
@@ -518,25 +540,50 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                   ),
                   cursorColor: const Color(0xFF1976D2),
                   obscureText: !isPasswordVisible,
-                  autofillHints: const [AutofillHints.newPassword],
+                  autofillHints:
+                      kIsWeb ? null : const [AutofillHints.newPassword],
                   textInputAction: TextInputAction.next,
                   decoration: _inputDecoration(
-                    hint: 'Create a password',
+                    hint: 'Create a password (min. 8 characters)',
                     icon: Icons.lock_outline_rounded,
-                    suffixIcon: IconButton(
-                      onPressed: () => setState(
-                        () => isPasswordVisible = !isPasswordVisible,
-                      ),
-                      icon: Icon(
-                        isPasswordVisible
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                        color: const Color(0xFF718096),
-                        size: 20,
-                      ),
+                    suffixIcon: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (passwordController.text.isNotEmpty)
+                          IconButton(
+                            tooltip: 'Clear password',
+                            splashRadius: 18,
+                            icon: const Icon(
+                              Icons.close_rounded,
+                              color: Color(0xFF94A3B8),
+                              size: 18,
+                            ),
+                            onPressed: () {
+                              passwordController.clear();
+                              passwordFocusNode.requestFocus();
+                            },
+                          ),
+                        IconButton(
+                          tooltip: isPasswordVisible
+                              ? 'Hide password'
+                              : 'Show password',
+                          splashRadius: 18,
+                          onPressed: () => setState(
+                            () => isPasswordVisible = !isPasswordVisible,
+                          ),
+                          icon: Icon(
+                            isPasswordVisible
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            color: const Color(0xFF718096),
+                            size: 20,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
+                _buildPasswordRequirements(),
 
                 const SizedBox(height: 18),
 
@@ -545,6 +592,7 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: confirmPasswordController,
+                  focusNode: confirmPasswordFocusNode,
                   style: const TextStyle(
                     color: Color(0xFF0F2740),
                     fontSize: 15,
@@ -552,27 +600,52 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                   ),
                   cursorColor: const Color(0xFF1976D2),
                   obscureText: !isConfirmPasswordVisible,
-                  autofillHints: const [AutofillHints.newPassword],
+                  autofillHints:
+                      kIsWeb ? null : const [AutofillHints.newPassword],
                   textInputAction: TextInputAction.done,
                   onSubmitted: (_) => _submitApplication(),
                   decoration: _inputDecoration(
                     hint: 'Confirm your password',
                     icon: Icons.lock_outline_rounded,
-                    suffixIcon: IconButton(
-                      onPressed: () => setState(
-                        () =>
-                            isConfirmPasswordVisible = !isConfirmPasswordVisible,
-                      ),
-                      icon: Icon(
-                        isConfirmPasswordVisible
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
-                        color: const Color(0xFF718096),
-                        size: 20,
-                      ),
+                    suffixIcon: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (confirmPasswordController.text.isNotEmpty)
+                          IconButton(
+                            tooltip: 'Clear confirm password',
+                            splashRadius: 18,
+                            icon: const Icon(
+                              Icons.close_rounded,
+                              color: Color(0xFF94A3B8),
+                              size: 18,
+                            ),
+                            onPressed: () {
+                              confirmPasswordController.clear();
+                              confirmPasswordFocusNode.requestFocus();
+                            },
+                          ),
+                        IconButton(
+                          tooltip: isConfirmPasswordVisible
+                              ? 'Hide password'
+                              : 'Show password',
+                          splashRadius: 18,
+                          onPressed: () => setState(
+                            () =>
+                                isConfirmPasswordVisible = !isConfirmPasswordVisible,
+                          ),
+                          icon: Icon(
+                            isConfirmPasswordVisible
+                                ? Icons.visibility_off_outlined
+                                : Icons.visibility_outlined,
+                            color: const Color(0xFF718096),
+                            size: 20,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
+                _buildConfirmPasswordMatch(),
 
                 const SizedBox(height: 26),
 
@@ -643,9 +716,11 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
                   ],
                 ),
               ],
-            ),
-          ),
+            );
+            return kIsWeb ? formContent : AutofillGroup(child: formContent);
+          },
         ),
+      ),
 
         const SizedBox(height: 20),
 
@@ -674,6 +749,84 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
           ],
         ),
       ],
+    );
+  }
+
+  Widget _buildPasswordRequirements() {
+    final text = passwordController.text;
+    final hasMinLength = text.length >= 8;
+
+    if (text.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.only(top: 6, left: 4),
+        child: Row(
+          children: [
+            Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF64748B)),
+            SizedBox(width: 6),
+            Text(
+              'Password must be at least 8 characters long',
+              style: TextStyle(
+                fontSize: 12,
+                color: Color(0xFF64748B),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, left: 4),
+      child: Row(
+        children: [
+          Icon(
+            hasMinLength ? Icons.check_circle_rounded : Icons.info_rounded,
+            size: 14,
+            color: hasMinLength ? const Color(0xFF10B981) : const Color(0xFFE11D48),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            hasMinLength
+                ? 'Strong length requirement met (${text.length} characters)'
+                : 'Too short (${text.length}/8 characters needed)',
+            style: TextStyle(
+              fontSize: 12,
+              color: hasMinLength ? const Color(0xFF059669) : const Color(0xFFE11D48),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConfirmPasswordMatch() {
+    final pass = passwordController.text;
+    final confirm = confirmPasswordController.text;
+    if (confirm.isEmpty) return const SizedBox.shrink();
+
+    final matches = pass.isNotEmpty && pass == confirm;
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, left: 4),
+      child: Row(
+        children: [
+          Icon(
+            matches ? Icons.check_circle_rounded : Icons.cancel_rounded,
+            size: 14,
+            color: matches ? const Color(0xFF10B981) : const Color(0xFFE11D48),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            matches ? 'Passwords match' : 'Passwords do not match',
+            style: TextStyle(
+              fontSize: 12,
+              color: matches ? const Color(0xFF059669) : const Color(0xFFE11D48),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -752,8 +905,21 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
       return;
     }
 
+    if (passwordController.text.length < 8) {
+      _showMessage('Password must be at least 8 characters long.');
+      passwordFocusNode.requestFocus();
+      passwordController.selection = TextSelection.fromPosition(
+        TextPosition(offset: passwordController.text.length),
+      );
+      return;
+    }
+
     if (passwordController.text != confirmPasswordController.text) {
-      _showMessage('Passwords do not match.');
+      _showMessage('Passwords do not match. Please verify your confirm password.');
+      confirmPasswordFocusNode.requestFocus();
+      confirmPasswordController.selection = TextSelection.fromPosition(
+        TextPosition(offset: confirmPasswordController.text.length),
+      );
       return;
     }
 
@@ -782,7 +948,9 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
         registrationCertificateBytes: registrationBytes,
       );
 
-      TextInput.finishAutofillContext();
+      if (!kIsWeb) {
+        TextInput.finishAutofillContext();
+      }
 
       if (!mounted) return;
 
@@ -832,6 +1000,12 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
     } catch (e) {
       if (mounted) {
         _showMessage('Error creating account: $e');
+        if (e.toString().toLowerCase().contains('password')) {
+          passwordFocusNode.requestFocus();
+          passwordController.selection = TextSelection.fromPosition(
+            TextPosition(offset: passwordController.text.length),
+          );
+        }
       }
     } finally {
       if (mounted) {
@@ -859,8 +1033,24 @@ class _DoctorRegisterScreenState extends State<DoctorRegisterScreen> {
   }
 
   void _showMessage(String message) {
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+      SnackBar(
+        content: Text(
+          message,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: const Color(0xFF1E293B),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        margin: const EdgeInsets.all(16),
+        duration: const Duration(seconds: 4),
+      ),
     );
   }
 

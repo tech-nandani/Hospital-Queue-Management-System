@@ -31,17 +31,35 @@ class _CareFlowFloatingAIState extends State<CareFlowFloatingAI> {
 
   @override
   Widget build(BuildContext context) {
-    return FloatingActionButton.extended(
-      heroTag: 'careflow_ai_btn_${widget.role}',
-      onPressed: () => _openChatDialog(context),
-      backgroundColor: AppColors.secondary,
-      foregroundColor: Colors.white,
-      elevation: 4,
-      icon: const Icon(Icons.auto_awesome_rounded, size: 20),
-      label: const Text(
-        'AI Assistant',
-        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
-      ),
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        FloatingActionButton.extended(
+          heroTag: 'careflow_ai_btn_${widget.role}',
+          onPressed: () => _openChatDialog(context),
+          backgroundColor: const Color(0xFF7C5CFC),
+          foregroundColor: Colors.white,
+          elevation: 4,
+          icon: const Icon(Icons.auto_awesome_rounded, size: 20),
+          label: const Text(
+            'AI Assistant',
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5),
+          ),
+        ),
+        Positioned(
+          top: 0,
+          right: 0,
+          child: Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: const Color(0xFF10B981),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 2),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -66,9 +84,9 @@ class _AIChatSheetState extends State<_AIChatSheet> {
       case 'Doctor':
         return [
           "Show today's queue",
-          "Summarize patient history",
           "Show priority patients",
-          "Show today's appointments",
+          "Who is next?",
+          "Summarize current patient history",
         ];
       case 'Receptionist':
         return [

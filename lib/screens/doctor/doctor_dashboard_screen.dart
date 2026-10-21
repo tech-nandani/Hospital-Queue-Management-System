@@ -9,17 +9,21 @@ import '../../services/verification_service.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/careflow_floating_ai.dart';
 import '../../widgets/doctor_sidebar.dart';
+import '../queue/doctor_today_queue_content.dart';
+import 'doctor_appointments_content.dart';
 
 class DoctorDashboardScreen extends StatefulWidget {
   final String? doctorName;
   final String? department;
   final int? doctorId;
+  final int initialIndex;
 
   const DoctorDashboardScreen({
     super.key,
     this.doctorName,
     this.department,
     this.doctorId,
+    this.initialIndex = 0,
   });
 
   @override
@@ -46,9 +50,6 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
   List<QueuePatient> _allAppointments = [];
   bool _isLoadingAppointments = false;
 
-  // Filters
-  String _appointmentStatusFilter = 'All'; // All, Upcoming, Today, Completed, Cancelled
-  String _appointmentPriorityFilter = 'All'; // All, Normal, High, Emergency
   String _analyticsRange = 'Today'; // Today, 7 Days, 30 Days
 
   // Digital Prescription Form in Tab 6
@@ -68,6 +69,7 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialIndex;
     _initDoctorContext();
     _queue.addListener(_onQueueChanged);
     _doctor.addListener(_onQueueChanged);
@@ -2049,37 +2051,12 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
   // ============================================================
 
   Widget _buildFullQueueView() {
-    return ListView(
-      padding: const EdgeInsets.all(24),
-      children: [
-        Row(
-          children: [
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Today's Patient Queue", style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
-                  Text('Complete patient triage, status management, and live examination dispatch', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
-                ],
-              ),
-            ),
-            ElevatedButton.icon(
-              onPressed: _callNextPatient,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2563EB),
-                foregroundColor: Colors.white,
-                minimumSize: const Size(0, 42),
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              icon: const Icon(Icons.campaign_rounded, size: 18),
-              label: const Text('Call Next Patient'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
-        _buildTodayQueueCard(),
-      ],
+    return DoctorTodayQueueContent(
+      doctorId: _effectiveDoctorId,
+      doctorName: _effectiveDoctorName,
+      department: _effectiveDepartment,
+      onStartConsultation: _startConsultationForPatient,
+      onNavigateToDashboard: () => setState(() => _selectedIndex = 0),
     );
   }
 
@@ -2088,163 +2065,13 @@ class _DoctorDashboardScreenState extends State<DoctorDashboardScreen> {
   // ============================================================
 
   Widget _buildAppointmentsView() {
-    final list = _allAppointments.where((apt) {
-      // Filter by search query
-      if (_searchQuery.isNotEmpty) {
-        final q = _searchQuery.toLowerCase();
-        final matches = apt.name.toLowerCase().contains(q) ||
-            apt.token.toString().contains(q) ||
-            apt.phone.contains(q) ||
-            apt.reason.toLowerCase().contains(q);
-        if (!matches) return false;
-      }
-
-      // Filter by Status Tab
-      if (_appointmentStatusFilter == 'Upcoming') {
-        if (apt.status != 'Waiting' && apt.status != 'Checked-in') return false;
-      } else if (_appointmentStatusFilter == 'Today') {
-        // Handled by date or current queue
-      } else if (_appointmentStatusFilter == 'Completed') {
-        if (apt.status != 'Completed') return false;
-      } else if (_appointmentStatusFilter == 'Cancelled') {
-        if (apt.status != 'Cancelled' && apt.status != 'No Show') return false;
-      }
-
-      // Filter by Priority
-      if (_appointmentPriorityFilter != 'All') {
-        if (apt.priority != _appointmentPriorityFilter) return false;
-      }
-
-      return true;
-    }).toList();
-
-    return ListView(
-      padding: const EdgeInsets.all(24),
-      children: [
-        Row(
-          children: [
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Doctor Appointments', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Color(0xFF0F172A))),
-                  Text('Comprehensive appointments roster and consultation schedule', style: TextStyle(fontSize: 13, color: Color(0xFF64748B))),
-                ],
-              ),
-            ),
-            IconButton(
-              icon: const Icon(Icons.refresh_rounded),
-              tooltip: 'Reload Appointments',
-              onPressed: _fetchAppointments,
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-
-        // FILTER BAR
-        Wrap(
-          spacing: 10,
-          runSpacing: 8,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            // Status Tabs
-            ...['All', 'Upcoming', 'Today', 'Completed', 'Cancelled'].map((status) {
-              final isSel = _appointmentStatusFilter == status;
-              return ChoiceChip(
-                label: Text(status),
-                selected: isSel,
-                onSelected: (_) => setState(() => _appointmentStatusFilter = status),
-                selectedColor: const Color(0xFF2563EB),
-                labelStyle: TextStyle(
-                  color: isSel ? Colors.white : const Color(0xFF334155),
-                  fontWeight: isSel ? FontWeight.w700 : FontWeight.w500,
-                  fontSize: 12.5,
-                ),
-              );
-            }),
-            const SizedBox(width: 12),
-            // Priority Dropdown Filter
-            DropdownButton<String>(
-              value: _appointmentPriorityFilter,
-              underline: const SizedBox(),
-              items: const [
-                DropdownMenuItem(value: 'All', child: Text('All Priorities', style: TextStyle(fontSize: 12.5))),
-                DropdownMenuItem(value: 'Normal', child: Text('Normal Priority', style: TextStyle(fontSize: 12.5))),
-                DropdownMenuItem(value: 'High', child: Text('High Priority', style: TextStyle(fontSize: 12.5))),
-                DropdownMenuItem(value: 'Emergency', child: Text('Emergency Only', style: TextStyle(fontSize: 12.5))),
-              ],
-              onChanged: (v) {
-                if (v != null) setState(() => _appointmentPriorityFilter = v);
-              },
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
-
-        if (_isLoadingAppointments)
-          const Center(child: Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator()))
-        else if (list.isEmpty)
-          _buildEmptyState(
-            icon: Icons.calendar_today_rounded,
-            title: 'No appointments found',
-            subtitle: 'No appointment records matching the current filter criteria.',
-          )
-        else
-          ...list.map((p) => Card(
-                elevation: 0,
-                color: Colors.white,
-                margin: const EdgeInsets.only(bottom: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Color(0xFFE2E8F0))),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 22,
-                        backgroundColor: const Color(0xFFEFF6FF),
-                        child: Text('#${p.token}', style: const TextStyle(fontWeight: FontWeight.w800, color: Color(0xFF2563EB))),
-                      ),
-                      const SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                Text(p.name, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF0F172A))),
-                                const SizedBox(width: 8),
-                                _buildPriorityBadge(p.priority),
-                              ],
-                            ),
-                            const SizedBox(height: 3),
-                            Text('Time: ${p.time} • ${p.age} yrs • Reason: ${p.reason}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
-                          ],
-                        ),
-                      ),
-                      _buildStatusBadge(p.status),
-                      const SizedBox(width: 10),
-                      OutlinedButton(
-                        onPressed: () => _viewPatientDetailsDialog(p),
-                        child: const Text('Details', style: TextStyle(fontSize: 12)),
-                      ),
-                      if (p.status != 'Completed') ...[
-                        const SizedBox(width: 8),
-                        ElevatedButton(
-                          onPressed: () => _startConsultationForPatient(p),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF2563EB),
-                            foregroundColor: Colors.white,
-                            minimumSize: const Size(0, 32),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                          ),
-                          child: const Text('Consult', style: TextStyle(fontSize: 12)),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              )),
-      ],
+    return DoctorAppointmentsContent(
+      doctorId: _effectiveDoctorId,
+      doctorName: _effectiveDoctorName,
+      department: _effectiveDepartment,
+      onStartConsultation: _startConsultationForPatient,
+      onNavigateToTab: (tabIndex) => setState(() => _selectedIndex = tabIndex),
+      onNavigateToDashboard: () => setState(() => _selectedIndex = 0),
     );
   }
 

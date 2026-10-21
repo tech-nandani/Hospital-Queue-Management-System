@@ -7,6 +7,8 @@ class PatientApiService {
 
   static final PatientApiService instance = PatientApiService._();
 
+  List<Map<String, dynamic>>? mockStaffAppointmentsForTesting;
+
   // Android emulator uses 10.0.2.2; web and desktop use localhost.
   static const String baseUrl = 'http://127.0.0.1:8000/api/patient';
 
@@ -383,12 +385,31 @@ class PatientApiService {
     String? department,
     String? date,
     String? status,
+    String? startDate,
+    String? endDate,
+    String? priority,
+    String? search,
   }) async {
+    if (mockStaffAppointmentsForTesting != null) {
+      return List.from(mockStaffAppointmentsForTesting!);
+    }
     final params = <String>['for_staff=1'];
     if (doctorId != null) params.add('doctor=$doctorId');
-    if (department != null && department.isNotEmpty) params.add('department=${Uri.encodeComponent(department)}');
+    if (department != null && department.isNotEmpty && department != 'All Departments') {
+      params.add('department=${Uri.encodeComponent(department)}');
+    }
     if (date != null && date.isNotEmpty) params.add('date=${Uri.encodeComponent(date)}');
-    if (status != null && status.isNotEmpty) params.add('status=${Uri.encodeComponent(status)}');
+    if (startDate != null && startDate.isNotEmpty) params.add('start_date=${Uri.encodeComponent(startDate)}');
+    if (endDate != null && endDate.isNotEmpty) params.add('end_date=${Uri.encodeComponent(endDate)}');
+    if (status != null && status.isNotEmpty && status != 'All Statuses' && status != 'All') {
+      params.add('status=${Uri.encodeComponent(status.toLowerCase().replaceAll(' ', '_'))}');
+    }
+    if (priority != null && priority.isNotEmpty && priority != 'All Priorities' && priority != 'All') {
+      params.add('priority=${Uri.encodeComponent(priority)}');
+    }
+    if (search != null && search.trim().isNotEmpty) {
+      params.add('search=${Uri.encodeComponent(search.trim())}');
+    }
     final query = '?${params.join('&')}';
 
     final response = await http.get(
